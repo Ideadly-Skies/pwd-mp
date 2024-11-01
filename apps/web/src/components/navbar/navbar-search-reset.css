@@ -1,0 +1,39 @@
+/* navbar-search-reset.css */
+.navbar-search * {
+    all: unset; /* Reset all inherited and applied styles */
+    box-sizing: border-box; /* Ensure consistent layout */
+}
+
+/* Apply only necessary styling back */
+.navbar-search {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 9999px; /* Full rounded corners */
+    overflow: hidden;
+    max-width: 28rem; /* Adjust to match design */
+    margin: 0 1rem;
+}
+
+.navbar-search input {
+    font-family: 'Arial', sans-serif;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    outline: none;
+}
+
+.navbar-search button {
+    background-color: #DC2626;
+    color: white;
+    padding: 0.25rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.navbar-search button:hover {
+    background-color: #B91C1C;
+}

@@ -1,0 +1,19 @@
+/* Custom CSS to position pagination dots lower */
+.custom-swiper .swiper-pagination {
+    bottom: -20px; /* Move the dots down by 20px */
+  }
+  
+  /* Optional: Customize the look of the dots */
+  .custom-swiper .swiper-pagination-bullet {
+    width: 12px;
+    height: 12px;
+    background-color: #ff5722; /* Bright orange dots */
+    opacity: 0.6;
+    transition: opacity 0.3s;
+  }
+  
+  .custom-swiper .swiper-pagination-bullet-active {
+    opacity: 1;
+    background-color: #d32f2f; /* Darker red for active dot */
+  }
+  

@@ -1,0 +1,42 @@
+
+/* Scope everything within the categories container */
+.categories-container .container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.categories-container .grid div:hover {
+    cursor: pointer;
+}
+
+.categories-container .w-20 {
+    width: 80px;
+}
+
+.categories-container .h-20 {
+    height: 80px;
+}
+
+.categories-container .rounded-full {
+    border-radius: 50%;
+}
+
+.categories-container .icon-container {
+    border: 2px solid #bfdbfe;
+    transition: all 0.3s ease-in-out;
+}
+
+.categories-container .category-card:hover .icon-container {
+    background-color: #F37D68;
+    border-color: #F05537;
+    transform: scale(1.1);
+}
+
+.categories-container .category-text {
+    color: #4b5563;
+    transition: color 0.3s ease-in-out;
+}
+
+.categories-container .category-card:hover .category-text {
+    color: #F05537;
+}
