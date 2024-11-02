@@ -12,4 +12,4 @@ config({ path: resolve(__dirname, `../${envFile}.local`), override: true });
 
 export const PORT = process.env.PORT || 4700;
 export const DATABASE_URL = process.env.DATABASE_URL || '';
-console.log('CONFIGED DATABASE URL',DATABASE_URL)
+
