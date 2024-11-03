@@ -24,39 +24,42 @@ enum Status {
 
 // Tables
 model User {
-  id                String             @id @default(uuid())
-  firstName         String
-  lastName          String
-  username          String
-  email             String             @unique
-  password          String
-  referralCode      String             @unique
-  role              String             @default("user")
-  phoneNumber       String?
-  address           String?
-  profilePictureUrl String?
-  totalPoint        Int                @default(0)
-  referralPoints    ReferralPoint[]
-  referralDiscounts ReferralDiscount[]
-  transactions      Transaction[]
-  reviews           Review[]
+  id                 String             @id @default(uuid())
+  firstName          String
+  lastName           String
+  username           String
+  email              String             @unique
+  password           String
+  referralCode       String             @unique
+  role               String             @default("user")
+  phoneNumber        String?
+  address            String?
+  profilePictureUrl  String?
+  totalPoint         Int                @default(0)
+  referralPoints     ReferralPoint[]
+  referralDiscounts  ReferralDiscount[]
+  transactions       Transaction[]
+  reviews            Review[]
+  resetPasswordToken String?
+  isValid            Boolean            @default(false)
 
   @@map("users")
 }
 
 model EventOrganizer {
-  id          String  @id @default(uuid())
-  firstName   String
-  lastName    String
-  username    String
-  email       String  @unique
-  password    String
-  role        String  @default("organizer")
-  address     String?
-  companyName String
-  phoneNumber String
-  pic         String
-  events      Event[]
+  id                 String  @id @default(uuid())
+  firstName          String
+  lastName           String
+  username           String
+  email              String  @unique
+  password           String
+  role               String  @default("organizer")
+  address            String?
+  companyName        String
+  phoneNumber        String
+  pic                String
+  events             Event[]
+  resetPasswordToken String?
 
   @@map("eventorganizer")
 }
