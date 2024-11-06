@@ -17,7 +17,7 @@ export const registerUserValidator = [
     ...registerUserValidator,
     body('companyName').notEmpty().withMessage('Company name is required'),
     body('phoneNumber').isMobilePhone('any').withMessage('Invalid phone number'),
-    body('pic').optional().isURL().withMessage('Invalid URL for profile picture'),
+    body('pic').notEmpty().withMessage('Person in Charge Name is required'),
   ];
 
   export const loginOrganizerValidator = loginValidator;

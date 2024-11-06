@@ -20,6 +20,10 @@ instance.interceptors.request.use(
     }
 )
 
+const handleLogout = () => {
+    localStorage.removeItem('authToken')
+}
+
 instance.interceptors.response.use(
     async response => {
         return response
@@ -29,6 +33,7 @@ instance.interceptors.response.use(
         if(error?.response?.data?.message === 'jwt expired' ){
             const setAuthLogout = authStore.getState().setAuthLogout
             setAuthLogout()
+            handleLogout()
             toast.error("Session expired",{
                 position: "top-right"
             })

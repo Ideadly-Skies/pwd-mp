@@ -3,12 +3,13 @@ import { persist } from 'zustand/middleware'
 
 const authStore = create(persist((set) => ({
     token:'',
-    name: '',
+    firstName: '',
+    lastName: '',
     role: '',
     
-    setAuth: ({token, name, role}:any) => set({ token: token, name: name, role: role}),
-    setKeepAuth: ({name, role}:any) => set({name: name, role: role}),
-    setAuthLogout: () => set({name: '', role: '', token: ''})
+    setAuth: ({token, firstName, lastName, role}:any) => set({ token: token, firstName: firstName, lastName: lastName, role: role}),
+    setKeepAuth: ({firstName, lastName, role}:any) => set({firstName: firstName, lastName: lastName, role: role}),
+    setAuthLogout: () => set({firstName: '', lastName: '', role: '', token: ''})
 }),
 {
     name: 'authToken',

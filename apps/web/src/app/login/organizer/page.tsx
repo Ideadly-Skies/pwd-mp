@@ -2,23 +2,23 @@
 import { FC } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useMutation } from '@tanstack/react-query';
 
-const LoginForm: FC = () => {
-  // Formik validation schema using Yup
-  const validationSchema = Yup.object({
-    email: Yup.string()
-      .email('Invalid email address')
-      .required('Email is required'),
-    password: Yup.string()
-      .min(6, 'Password must be at least 6 characters')
-      .required('Password is required'),
-  });
-
+const LoginOrganizerSchema = Yup.object({
+  email: Yup.string()
+    .email('Invalid email address')
+    .required('Email is required'),
+  password: Yup.string()
+    .min(6, 'Password must be at least 6 characters')
+    .required('Password is required'),
+});
+const OrganizerLoginForm: FC = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-md rounded-md">
         {/* Logo */}
         <div className="flex justify-center">
+          {/* Organizer-specific logo */}
           <svg className="p-10 mt-4" viewBox="0 0 200 36">
             <g fill-rule="evenodd">
               <g>
@@ -46,15 +46,20 @@ const LoginForm: FC = () => {
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl font-bold text-center text-gray-800">Log in</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-800">
+          Organizer Login
+        </h2>
+        <p className="text-center text-sm text-gray-600">
+          Access your dashboard and manage events
+        </p>
 
         {/* Formik Form */}
         <Formik
           initialValues={{ email: '', password: '' }}
-          validationSchema={validationSchema}
+          validationSchema = {LoginOrganizerSchema}
           onSubmit={(values) => {
             // Handle form submission
-            console.log('Form submitted:', values);
+            console.log('Organizer form submitted:', values);
           }}
         >
           {({ isSubmitting }) => (
@@ -63,7 +68,7 @@ const LoginForm: FC = () => {
                 <Field
                   type="email"
                   name="email"
-                  placeholder="Email address"
+                  placeholder="Organizer email address"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
                 <ErrorMessage
@@ -92,7 +97,9 @@ const LoginForm: FC = () => {
                 className="w-full py-2 font-bold text-white bg-orange-600 rounded-md hover:bg-orange-700"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Logging in...' : 'Log in'}
+                {isSubmitting
+                  ? 'Logging in...'
+                  : 'Log in to Organizer Dashboard'}
               </button>
             </Form>
           )}
@@ -110,7 +117,7 @@ const LoginForm: FC = () => {
         {/* Alternative Login Options */}
         <div className="space-y-2">
           <button className="w-full py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100">
-            Email me a login link
+            Send a login link to your email
           </button>
           <button className="flex items-center justify-center w-full py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 gap-x-2">
             <svg width="24" height="24" fill="none">
@@ -146,10 +153,10 @@ const LoginForm: FC = () => {
           </button>
         </div>
 
-        {/* Other Login Methods */}
+        {/* Extra Organizer Login Options */}
         <div className="text-center">
           <button className="text-sm text-gray-600 hover:underline">
-            Other login methods
+            Need access to the organizer dashboard? Contact support
           </button>
         </div>
       </div>
@@ -157,4 +164,4 @@ const LoginForm: FC = () => {
   );
 };
 
-export default LoginForm;
+export default OrganizerLoginForm;
