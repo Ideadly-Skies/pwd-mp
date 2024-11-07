@@ -9,6 +9,9 @@ import { transporter } from "@/utils/transporter";
 
 export const registerUser = async(req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log("called")
+        console.log(req.body);
+
         const { firstName, lastName, email, username, password } = req.body
 
         if(!firstName ||!lastName || !email || !username || !password) throw {msg: 'Input cannot be blank',status: 406}

@@ -16,6 +16,7 @@ export const verifyToken = async(req: Request, res: Response, next: NextFunction
 
         next()
     } catch (error) {
+        console.log(error)
         // Menuju ke Centralized Error
         next(error)
     }

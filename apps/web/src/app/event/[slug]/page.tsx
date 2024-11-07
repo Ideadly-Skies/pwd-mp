@@ -1,8 +1,34 @@
-import React from 'react';
+"use client"
+import React, {useRef, useState} from 'react';
 import OtherEventsSection from '../section/page';
+import { useRouter } from 'next/navigation';
 
 export default function EventPage() {
+  // declare router
+  const router = useRouter()
+
+  // Create a ref for the Tickets Section
+  const ticketsSectionRef = useRef<HTMLDivElement | null>(null);
+  
+  // State for ticket count
+  const [regularTicketCount, setRegularTicketCount] = useState(0);
+
+  // Functions to handle increment and decrement
+  const incrementTicket = () => setRegularTicketCount(prevCount => prevCount + 1);
+  const decrementTicket = () => setRegularTicketCount(prevCount => Math.max(0, prevCount - 1));
+
+  // Scroll to the Tickets Section when button is clicked
+  const scrollToTickets = () => {
+    if (ticketsSectionRef.current) {
+      const offset = -80; // Adjust this value to set how much space to leave above the title
+      const topPosition = ticketsSectionRef.current.getBoundingClientRect().top + window.pageYOffset + offset;
+      window.scrollTo({ top: topPosition, behavior: 'smooth' });
+    }
+  };
+  
+
   return (
+
     <div className="bg-gray-100 min-h-screen">
       
       {/* Container for the entire page content with a two-column layout */}
@@ -83,9 +109,8 @@ export default function EventPage() {
             <p className="mt-2 text-gray-600">SangSang Haeyo!</p>
           </section> 
 
-          {/* Additional sections like Tickets, Tags, Organized By, etc., would go here */}
           {/* Tickets Section */} 
-          <section className="bg-white rounded-lg shadow-lg p-8 mt-8">
+          <section ref={ticketsSectionRef} className="bg-white rounded-lg shadow-lg p-8 mt-8">
             <h2 className="text-2xl font-semibold text-gray-800">Tickets</h2>
             <div className="mt-4 space-y-4">
               <div className="flex justify-between items-center border border-gray-300 rounded-lg p-4">
@@ -101,9 +126,9 @@ export default function EventPage() {
                   <p className="text-gray-600">FREE</p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <button className="border border-gray-300 text-gray-500 p-1 rounded">-</button>
-                  <span>0</span>
-                  <button className="border border-blue-500 text-blue-500 p-1 rounded">+</button>
+                  <button onClick={decrementTicket} className="border border-gray-300 text-gray-500 p-1 rounded hover:border-[#f05537] hover:text-gray-500">-</button>
+                  <span>{regularTicketCount}</span>
+                  <button onClick={incrementTicket} className="border border-gray-300 text-blue-500 p-1 rounded hover:border-[#f05537] hover:text-gray-500">+</button>
                 </div>
                 <span className="text-blue-500 cursor-pointer">Read more</span>
               </div>
@@ -148,11 +173,20 @@ export default function EventPage() {
         
         {/* Right side (Persistent Select Tickets Button) - 1/4 width */}
         <div className="w-1/4">
-          {/* Sticky container for the Select Tickets button */}
+          {/* Sticky container for the button */}
           <div className="sticky top-20">
             <div className="bg-white p-4 rounded-lg shadow-lg">
-              <button className="bg-orange-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-orange-600 w-full">
-                Select tickets
+              <button
+                className="bg-orange-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-orange-600 w-full"
+                onClick={() => {
+                  if (regularTicketCount > 0) {
+                    router.push('/checkout'); // Navigate to checkout page if ticket count > 0
+                  } else {
+                    scrollToTickets(); // Scroll to tickets section if no tickets are selected
+                  }
+                }}
+              >
+                {regularTicketCount > 0 ? 'Checkout' : 'Select tickets'}
               </button>
             </div>
           </div>

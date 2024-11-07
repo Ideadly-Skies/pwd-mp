@@ -147,7 +147,7 @@ function Navbar() {
           {tokenIsValid ? (
             /* Avatar with Dropdown Menu */
             <DropdownMenu>
-                <h1> Hello, {name}</h1>
+                <h1 className='text-[#f05537] font-semibold'> Hello, {name}!</h1>
               <DropdownMenuTrigger className="cursor-pointer">
                 <Avatar>
                   <AvatarImage

@@ -10,56 +10,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums
-enum EventType {
-  ONLINE
-  OFFLINE
-}
-
-enum Status {
-  WAITING_FOR_PAYMENT
-  PAID
-  CANCELLED
-}
-
 // Tables
 model User {
-  id                 String             @id @default(uuid())
-  firstName          String
-  lastName           String
-  username           String
-  email              String             @unique
-  password           String
-  referralCode       String             @unique
-  role               String             @default("user")
-  phoneNumber        String?
-  address            String?
-  profilePictureUrl  String?
-  totalPoint         Int                @default(0)
-  referralPoints     ReferralPoint[]
-  referralDiscounts  ReferralDiscount[]
-  transactions       Transaction[]
-  reviews            Review[]
-  resetPasswordToken String?            @db.Char(255)
-  isValid            Boolean            @default(false)
+  id                String             @id @default(uuid())
+  firstName         String
+  lastName          String
+  username          String
+  email             String             @unique
+  password          String
+  referralCode      String             @unique
+  role              String             @default("user")
+  phoneNumber       String?
+  address           String?
+  profilePictureUrl String?
+  totalPoint        Int                @default(0)
+  referralPoints    ReferralPoint[]
+  referralDiscounts ReferralDiscount[]
+  transactions      Transaction[]
+  reviews           Review[]
+  resetPasswordToken String?           @db.Char(255)
+  isValid           Boolean            @default(false)
 
   @@map("users")
 }
 
 model EventOrganizer {
-  id                 String  @id @default(uuid())
-  firstName          String
-  lastName           String
-  username           String
-  email              String  @unique
-  password           String
-  role               String  @default("organizer")
-  address            String?
-  companyName        String
-  phoneNumber        String
-  pic                String
-  events             Event[]
-  resetPasswordToken String?
+  id          String  @id @default(uuid())
+  firstName   String
+  lastName    String
+  username    String
+  email       String  @unique
+  password    String
+  role        String  @default("organizer")
+  address     String?
+  companyName String
+  phoneNumber String
+  pic         String
+  events      Event[]
 
   @@map("eventorganizer")
 }
@@ -88,7 +75,7 @@ model ReferralDiscount {
 model Event {
   id           Int            @id @default(autoincrement())
   name         String
-  type         EventType
+  type         String 
   locationName String
   location     String
   url          String
@@ -171,7 +158,7 @@ model TransactionDetail {
 
 model TransactionStatus {
   id            Int         @id @default(autoincrement())
-  status        Status
+  status        String 
   transaction   Transaction @relation(fields: [transactionId], references: [id])
   transactionId Int
   createdAt     DateTime    @default(now())
