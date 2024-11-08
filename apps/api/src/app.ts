@@ -35,20 +35,26 @@ export default class App {
     // Not found handler
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       if (req.path.includes('/api/')) {
-        res.status(404).send('Not found!');
+        res.status(404).json({ error: 'Not found!' });
       } else {
         next();
       }
     });
-
+  
     // General error handler
     this.app.use(
       (err: Error, req: Request, res: Response, next: NextFunction) => {
         if (req.path.includes('/api/')) {
-          console.error('Error : ', err.stack);
-          res.status(500).send('Error!');
+          console.error('Error:', err);
+  
+          // Send a JSON response with error details for API requests
+          res.status(500).json({
+            error: 'An internal server error occurred.',
+            message: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+          });
         } else {
-          next();
+          next(err); // Pass to other non-API error handlers if necessary
         }
       }
     );

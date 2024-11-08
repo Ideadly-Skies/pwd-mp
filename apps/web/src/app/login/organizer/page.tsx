@@ -3,16 +3,45 @@ import { FC } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation'
+import authStore from '@/zustand/authStore';
+import instance from '@/utils/axiosinstance';
+import { toast } from 'react-toastify';
 
 const LoginOrganizerSchema = Yup.object({
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
+  emailOrUsername: Yup.string().required('Email is required'),
   password: Yup.string()
     .min(6, 'Password must be at least 6 characters')
     .required('Password is required'),
 });
 const OrganizerLoginForm: FC = () => {
+  const router = useRouter()
+  const setAuth = authStore((state: any) => state.setAuth)
+
+      const{mutate: mutateLoginOrganizer} = useMutation({
+        mutationFn: async({emailOrUsername, password}: any) => {
+          return await instance.post('/auth/login-organizer',{
+            emailOrUsername,
+            password
+          })
+        },
+        onSuccess: (res) => {
+      
+          setAuth({
+            token: res?.data?.data?.token, 
+            firstName: res?.data?.data?.firstName,
+            lastName: res?.data?.data?.lastName,
+            role: res?.data?.data?.role,
+            email: res?.data?.data?.email
+          })
+          toast.success(res.data.message)
+          router.push('/')
+        },
+        onError: (err) => {
+          console.log(err)
+          toast.error('something went wrong')
+        }
+      })
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-md rounded-md">
@@ -55,24 +84,24 @@ const OrganizerLoginForm: FC = () => {
 
         {/* Formik Form */}
         <Formik
-          initialValues={{ email: '', password: '' }}
+          initialValues={{ emailOrUsername: '', password: '' }}
           validationSchema = {LoginOrganizerSchema}
           onSubmit={(values) => {
-            // Handle form submission
-            console.log('Organizer form submitted:', values);
+
+            mutateLoginOrganizer({emailOrUsername: values.emailOrUsername, password: values.password})
           }}
         >
           {({ isSubmitting }) => (
             <Form className="space-y-4">
               <div>
                 <Field
-                  type="email"
-                  name="email"
-                  placeholder="Organizer email address"
+                  type="text"
+                  name="emailOrUsername"
+                  placeholder="Organizer email address or username"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
                 <ErrorMessage
-                  name="email"
+                  name="emailOrUsername"
                   component="div"
                   className="text-sm pt-2 px-2 text-red-500"
                 />
@@ -95,7 +124,7 @@ const OrganizerLoginForm: FC = () => {
               <button
                 type="submit"
                 className="w-full py-2 font-bold text-white bg-orange-600 rounded-md hover:bg-orange-700"
-                disabled={isSubmitting}
+                // disabled={isSubmitting}
               >
                 {isSubmitting
                   ? 'Logging in...'

@@ -7,6 +7,8 @@ export const uploader = (req: Request, res: Response, next: NextFunction) => {
 
     uploaded(req, res, function(err){
         try{
+            console.log(err)
+            console.log(req.files)
             if(err) throw {msg: err.message}
             
             if(!Array.isArray(req?.files) && !req?.files?.images?.length) throw {msg: 'File Tidak Ditemukan'}

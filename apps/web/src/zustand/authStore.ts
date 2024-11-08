@@ -5,11 +5,13 @@ const authStore = create(persist((set) => ({
     token:'',
     firstName: '',
     lastName: '',
+    email: '',
     role: '',
+    profilePictureUrl: '',
     
-    setAuth: ({token, firstName, lastName, role}:any) => set({ token: token, firstName: firstName, lastName: lastName, role: role}),
-    setKeepAuth: ({firstName, lastName, role}:any) => set({firstName: firstName, lastName: lastName, role: role}),
-    setAuthLogout: () => set({firstName: '', lastName: '', role: '', token: ''})
+    setAuth: ({ token, firstName, lastName, role, email, profilePictureUrl }: any) => set({ token, firstName, lastName, role, email, profilePictureUrl }),
+    setKeepAuth: ({firstName, lastName, role, email, profilePictureUrl}:any) => set({firstName: firstName, lastName: lastName, role: role,email: email, profilePictureUrl: profilePictureUrl}),
+    setAuthLogout: () => set({firstName: '', lastName: '', role: '', token: '', email:'', profilePictureUrl: ''})
 }),
 {
     name: 'authToken',

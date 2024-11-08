@@ -15,6 +15,7 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
     const [isKeepAuth, setIsKeepAuth] = useState(false);
 
     const token = authStore((state) => state.token);
+    const role = authStore((state) => state.role)
     const setKeepAuth = authStore((state) => state.setKeepAuth);
 
     const fetchKeepAuth = async () => {
@@ -24,6 +25,8 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
                 firstName: auth?.data?.data?.firstName,
                 lastName: auth?.data?.data?.lastName,
                 role: auth?.data?.data?.role,
+                email: auth?.data?.data?.email,
+                profilePictureUrl: auth?.data?.data?.profilePictureUrl
             });
         } catch (err) {
             console.log(err);
@@ -44,7 +47,7 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
 
     useEffect(() => {
         // Redirect to home if logged in and accessing login pages
-        if ((pathname === '/login/user' || pathname === '/login/organizer') && token) {
+        if ((pathname === '/login/user' || pathname === '/login/organizer') && token && role) {
             router.push('/');
         }
 
