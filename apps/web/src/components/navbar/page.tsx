@@ -47,14 +47,13 @@ function Navbar() {
   const token = authStore((state) => state.token); // Access token from authStore
   const name = authStore((state) => state.firstName);
   const handleLogout = authStore((state) => state.setAuthLogout)
-  const profilePictureUrl = authStore((state) => state.profilePictureUrl)
   const router = useRouter()
 
   const isTokenValid = (token: string) => {
     if(!token) return false
     try {
         const decodedToken = jwtDecode(token)
-        return decodedToken.exp * 1000 > Date.now();
+        return decodedToken.exp! * 1000 > Date.now();
     } catch (error) {
         return false
     }
@@ -125,7 +124,7 @@ function Navbar() {
 
         {/* Navigation Links */}
         <div className="hidden lg:flex space-x-6 items-center">
-          <Link href="/event/asd" className="text-gray-800 hover:text-red-600">
+          <Link href="/event/all-events" className="text-gray-800 hover:text-red-600">
             Find Events
           </Link>
           <Link
@@ -152,7 +151,7 @@ function Navbar() {
               <DropdownMenuTrigger className="cursor-pointer">
                 <Avatar>
                   <AvatarImage
-                   src={`http://localhost:4700/images/${profilePictureUrl}`}
+                    src="https://github.com/shadcn.png"
                     alt="@shadcn"
                   />
                   <AvatarFallback>CN</AvatarFallback>

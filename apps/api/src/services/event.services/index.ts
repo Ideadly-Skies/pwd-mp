@@ -1,7 +1,7 @@
 import { prisma } from "../../connection";
-import { ICreateEvent } from "./types";
+// import { IUser } from "./types";
 
-export const createEventService = async({name, type, category, location, locationName, url, summary, eventStartDate, eventEndDate, isPaid, capacity}: ICreateEvent) => {
+export const createEventService = async({name, type, category, location, locationName, summary, detailedDescription, eventStartDate, eventEndDate, capacity, usersId, tags, url, isPaid}: any) => {
     const categoryRecord = await prisma.category.findMany({
         where: {
             name: category,
@@ -13,6 +13,8 @@ export const createEventService = async({name, type, category, location, locatio
         throw new Error(`Category "${category}" not found.`);
     } 
     
+    console.log(categoryRecord);
+    
     // create new event service
     await prisma.event.create({
         data: {
@@ -22,12 +24,45 @@ export const createEventService = async({name, type, category, location, locatio
             location: location,
             url: url,
             description: summary,
+            detailedDescription: detailedDescription,
             startDate: new Date(eventStartDate),
             endDate: new Date(eventEndDate),
             isPaid: isPaid,
             capacity: Number(capacity),
             categoryId: categoryRecord[0].id,
-            eoId: 'f3ede333-04bb-4ef2-8acd-5c599cbf500d'
+            eoId: usersId,
+            tags: {
+                connectOrCreate: tags.map((tag: any) => ({
+                  where: { name: tag },
+                  create: { name: tag },
+                })),
+            },
         }
     }) 
 }
+
+
+export const getEventService = async() => {
+    // get event service
+    return await prisma.event.findMany({
+        include: {
+            tags: true,
+            category: true, // This includes the category information in the response
+        }, 
+    })
+}
+
+/* 
+    getEvent by id service
+*/
+export const getEventByIdService = async({ id }: any) => {
+    return await prisma.event.findUnique({
+        where: {
+            id: Number(id),
+        },
+        include: {
+            tags: true,
+            category: true, // This includes the category information in the response
+        },
+    });
+};

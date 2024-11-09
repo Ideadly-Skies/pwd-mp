@@ -1,6 +1,5 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,41 +11,42 @@ datasource db {
 
 // Tables
 model User {
-  id                String             @id @default(uuid())
-  firstName         String
-  lastName          String
-  username          String
-  email             String             @unique
-  password          String
-  referralCode      String             @unique
-  role              String             @default("user")
-  phoneNumber       String?
-  address           String?
-  profilePictureUrl String?
-  totalPoint        Int                @default(0)
-  referralPoints    ReferralPoint[]
-  referralDiscounts ReferralDiscount[]
-  transactions      Transaction[]
-  reviews           Review[]
-  resetPasswordToken String?           @db.Char(255)
-  isValid           Boolean            @default(false)
+  id                 String             @id @default(uuid())
+  firstName          String
+  lastName           String
+  username           String
+  email              String             @unique
+  password           String
+  referralCode       String             @unique
+  role               String             @default("user")
+  phoneNumber        String?
+  address            String?
+  profilePictureUrl  String?
+  totalPoint         Int                @default(0)
+  referralPoints     ReferralPoint[]
+  referralDiscounts  ReferralDiscount[]
+  transactions       Transaction[]
+  reviews            Review[]
+  resetPasswordToken String?            @db.Char(255)
+  isValid            Boolean            @default(false)
 
   @@map("users")
 }
 
 model EventOrganizer {
-  id          String  @id @default(uuid())
-  firstName   String
-  lastName    String
-  username    String
-  email       String  @unique
-  password    String
-  role        String  @default("organizer")
-  address     String?
-  companyName String
-  phoneNumber String
-  pic         String
-  events      Event[]
+  id                String  @id @default(uuid())
+  firstName         String
+  lastName          String
+  username          String
+  email             String  @unique
+  password          String
+  role              String  @default("organizer")
+  address           String?
+  companyName       String
+  phoneNumber       String
+  pic               String
+  events            Event[]
+  profilePictureUrl String?
 
   @@map("eventorganizer")
 }
@@ -72,28 +72,42 @@ model ReferralDiscount {
   @@map("refferaldiscounts")
 }
 
+// event model
 model Event {
-  id           Int            @id @default(autoincrement())
-  name         String
-  type         String 
-  locationName String
-  location     String
-  url          String
-  description  String
-  startDate    DateTime
-  endDate      DateTime
-  isPaid       Boolean
-  capacity     Int
-  eo           EventOrganizer @relation(fields: [eoId], references: [id])
-  eoId         String
-  tickets      EventTicket[]
-  images       EventImage[]
-  transactions Transaction[]
-  reviews      Review[]
-  categoryId   Int
-  category     Category       @relation(fields: [categoryId], references: [id])
+  id                  Int            @id @default(autoincrement())
+  name                String
+  type                String
+  locationName        String
+  location            String
+  url                 String
+  description         String
+  detailedDescription String?       
+  startDate           DateTime
+  endDate             DateTime
+  isPaid              Boolean
+  capacity            Int
+  eo                  EventOrganizer @relation(fields: [eoId], references: [id])
+  eoId                String
+  tickets             EventTicket[]
+  images              EventImage[]
+  transactions        Transaction[]
+  reviews             Review[]
+  categoryId          Int
+  category            Category       @relation(fields: [categoryId], references: [id])
+
+  // New relationship with Tag
+  tags Tag[] @relation("EventTags")
 
   @@map("events")
+}
+
+// tag model to store tags
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  // New relationship with Event
+  events Event[] @relation("EventTags")
 }
 
 model EventTicket {
@@ -158,7 +172,7 @@ model TransactionDetail {
 
 model TransactionStatus {
   id            Int         @id @default(autoincrement())
-  status        String 
+  status        String
   transaction   Transaction @relation(fields: [transactionId], references: [id])
   transactionId Int
   createdAt     DateTime    @default(now())

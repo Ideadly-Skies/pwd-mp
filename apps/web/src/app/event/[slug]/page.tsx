@@ -1,11 +1,63 @@
 "use client"
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import OtherEventsSection from '../section/page';
-import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { useQuery, useQueries } from '@tanstack/react-query';
+import { useRouter, usePathname } from 'next/navigation';
+import { format } from 'date-fns';
+
+// Function to format date
+function formatDate(dateString: string) {
+  // Convert the ISO date string directly into a Date object
+  const date = new Date(dateString);
+
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+
+  // Format the date
+  return format(date, 'MMMM dd, yyyy');
+}
 
 export default function EventPage() {
-  // declare router
+  // define router, id, and useState for storing fetched event 
   const router = useRouter()
+  const pathname = usePathname()
+  const id = pathname.split('/')[2]
+
+  // console.log("from event page",pathname.split('/'))
+  // Using `useQueries` to fetch both the specific event by `id` and all events
+  const [eventQuery, allEventsQuery] = useQueries({
+    queries: [
+      {
+        queryKey: ['event', id], // Unique key for the single event query
+        queryFn: async () => {
+          const res = await axios.get(`http://localhost:4700/api/event/${id}`);
+          // console.log("Fetched single event:", res.data.data);
+          return res.data.data;
+        },
+        enabled: !!id, // Only run this query if `id` is defined
+      },
+      {
+        queryKey: ['events'], // Unique key for all events
+        queryFn: async () => {
+          const res = await axios.get("http://localhost:4700/api/event");
+          // console.log("Fetched all events:", res.data.data);
+          return res.data.data;
+        },
+      },
+    ],
+  });
+
+  let event = eventQuery.data
+  console.log(event) 
+
+  let allEvents = allEventsQuery.data
+  // console.log("all events", allEvents)
+
+  // Filter out the current event from all events
+  const otherEvents = allEvents?.filter((e: any) => e.id !== Number(id));
 
   // Create a ref for the Tickets Section
   const ticketsSectionRef = useRef<HTMLDivElement | null>(null);
@@ -25,7 +77,11 @@ export default function EventPage() {
       window.scrollTo({ top: topPosition, behavior: 'smooth' });
     }
   };
-  
+
+  // if there are no event being fetched
+  if (!event) {
+    return <div>Loading...</div>; 
+  }
 
   return (
 
@@ -38,8 +94,8 @@ export default function EventPage() {
         <div className="w-3/4 pr-8">
           {/* Header Section */}
           <header className="text-center py-8">
-            <h1 className="text-3xl font-bold text-gray-800">KT&G SangSang Festival Jakarta 2024</h1>
-            <p className="text-gray-500">Friday, November 1</p>
+            <h1 className="text-3xl font-bold text-gray-800">{event.name}</h1>
+            <p className="text-gray-500">{formatDate(event.startDate)}</p>
           </header>
 
           {/* Banner Section */}
@@ -48,18 +104,18 @@ export default function EventPage() {
             {/* Text Section */}
             <div className="text-left lg:w-1/2 lg:pl-6">
               <h1 className="text-5xl font-bold mb-2 text-pink-400">
-                SangSang Festival
-                <span className="block text-4xl text-yellow-300">Jakarta</span>
+                {event.name}
+                <span className="block text-4xl text-yellow-300">{event.location}</span>
               </h1>
-              <p className="text-lg text-white">
+              {/* <p className="text-lg text-white">
                 Join us for an exciting festival celebrating culture and music! Explore live performances, activities, and more in the heart of Jakarta.
-              </p>
+              </p> */}
             </div>
 
             {/* Image Section */}
             <div className="w-full lg:w-1/2 mt-4 lg:mt-0">
               <img
-                src="https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F884211613%2F1747953025863%2F1%2Foriginal.20241027-100718?crop=focalpoint&fit=crop&w=940&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.5&fp-y=0.5&s=a51d73a2c4c83faf5f95a8fbd152ac57"
+                src={"http://localhost:4700/api"+event?.url}
                 alt="SangSang Festival Jakarta"
                 className="w-full rounded-lg"
               />
@@ -71,43 +127,21 @@ export default function EventPage() {
           <section className="bg-white rounded-lg shadow-lg p-8 mt-8">
             <h2 className="text-2xl font-semibold text-gray-800">Event Details</h2>
             <p className="mt-4 text-gray-600">
-              Join us for an exciting day filled with Korean cultural experiences! 
-              From K-Pop dance to traditional games and Korean food, there's something for everyone.
+              {event.description} 
             </p>
-            <ul className="list-disc list-inside mt-4 space-y-2">
+            {/* <ul className="list-disc list-inside mt-4 space-y-2">
               <li className="text-gray-600">Noraebang</li>
               <li className="text-gray-600">K-Pop Dance</li>
               <li className="text-gray-600">Photobox</li>
               <li className="text-gray-600">Traditional Korean Games</li>
-            </ul>
+            </ul> */}
           </section>
           
           {/* About Event Section */}
           <section className="bg-white rounded-lg shadow-lg p-8 mt-8">
             <h2 className="text-2xl font-semibold text-gray-800">About this event</h2>
-            <p className="mt-4 text-gray-600">
-              <strong>Konser GRATIS, KT&G SangSang Festival Jakarta 2024 is back!</strong> <br />
-              Yuk, dateng ke konser KT&G SangSang Festival Jakarta 2024! Kali ini, kita bakalan nyanyi bareng 
-              Fabio Asher, konser ini memang buat kamu seru-seruan di akhir pekan.
-            </p>
-            <p className="mt-2 text-gray-600">
-              Selain itu, ada Noraebang (karaoke) bareng Sorijileo dan penampilan K-Pop Dance juga, lho!
-            </p>
-            <p className="mt-2 text-gray-600">
-              <strong>Syarat penonton minimal berusia 21 tahun</strong>
-            </p>
-            <ul className="list-decimal list-inside mt-2 text-gray-600 space-y-1">
-              <li>Dilarang membawa benda tajam, obat-obatan terlarang, dan minuman keras</li>
-              <li>Dilarang membawa makanan dan minuman ke dalam area konser</li>
-              <li>Dilarang melakukan tindak kekerasan, asusila, dan pelecehan seksual di area sekitar konser. Apabila terjadi, segala jenis tindakan tersebut akan diteruskan kepada pihak yang berwajib.</li>
-              <li>Have fun!</li>
-            </ul>
-            <p className="mt-4 text-gray-600">
-              <strong>Note:</strong> SangSang Mates bisa join ke salah satu WhatsApp Group yang terdapat di akhir sesi registrasi/Order 
-              Confirmation yang masuk ke email masing-masing untuk mendapatkan informasi seputar SangSang Festa dan informasi eksklusif lainnya mengenai SangSang.
-            </p>
-            <p className="mt-2 text-gray-600">SangSang Haeyo!</p>
-          </section> 
+            {event.detailedDescription}
+          </section>
 
           {/* Tickets Section */} 
           <section ref={ticketsSectionRef} className="bg-white rounded-lg shadow-lg p-8 mt-8">
@@ -147,8 +181,12 @@ export default function EventPage() {
           <section className="bg-white rounded-lg shadow-lg p-8 mt-8">
             <h2 className="text-2xl font-semibold text-gray-800">Tags</h2>
             <div className="mt-4 flex flex-wrap gap-2">
-              {['Indonesia Events', 'DKI Jakarta Events', 'Things to do in Jakarta', 'Jakarta Festivals', 'Jakarta Music Festivals', '#gratis', '#kpopdance', '#hanbok', '#noraebang', '#ktng', '#photobox', '#programcsr', '#fabioasher', '#sangsangfestival'].map(tag => (
-                <span key={tag} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">{tag}</span>
+              {event.tags.map((tag: any) => (
+                <span 
+                  key={tag.id} 
+                  className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
+                  # {tag.name}
+                </span>
               ))}
             </div>
           </section>
@@ -193,7 +231,7 @@ export default function EventPage() {
         </div>
       </div>
 
-      <OtherEventsSection/>
+      <OtherEventsSection otherEvents={otherEvents}/>
 
     </div>
   );

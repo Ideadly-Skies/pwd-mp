@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import instance from '@/utils/axiosinstance';
 import { useMutation, UseQueryResult } from "@tanstack/react-query";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
 
 // Formik
 import { Formik, Field, Form, ErrorMessage, useFormikContext } from 'formik';
@@ -10,6 +11,8 @@ import * as Yup from 'yup';
 
 // create event page
 export default function CreateEventPage() {
+    const router = useRouter();
+
     const EventTypeButtons = () => {
         const { values, setFieldValue } = useFormikContext<any>();
         return (
@@ -126,6 +129,7 @@ export default function CreateEventPage() {
             toast.success("Create event success", {
                 position: "top-center"
             })
+            router.push('/');
             console.log(res);
         },
 
@@ -414,7 +418,7 @@ export default function CreateEventPage() {
                                             </div>
 
                                             {/* Display Time Checkboxes */}
-                                            <div className="flex items-center space-x-4 mb-6">
+                                            {/* <div className="flex items-center space-x-4 mb-6">
                                                 <label className="flex items-center text-gray-700">
                                                     <Field type="checkbox" name="displayStartTime" className="mr-2" />
                                                     Display start time
@@ -423,7 +427,7 @@ export default function CreateEventPage() {
                                                     <Field type="checkbox" name="displayEndTime" className="mr-2" />
                                                     Display end time
                                                 </label>
-                                            </div>
+                                            </div> */}
 
                                             {/* Time Zone Selection */}
                                             <div className="mb-4">
@@ -585,11 +589,11 @@ export default function CreateEventPage() {
                                                 name="summary"
                                                 className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500 resize-none"
                                                 placeholder="Write a short event summary to get attendees excited..."
-                                                maxLength={140}
+                                                maxLength={500}
                                                 rows={3}
                                             />
                                             <ErrorMessage name="summary" component="p" className="text-red-500 text-sm" />
-                                            <p className="text-right text-gray-500 text-sm mt-1">{values.summary.length}/140</p>
+                                            <p className="text-right text-gray-500 text-sm mt-1">{values.summary.length}/500</p>
                                         </div>
         
                                         {/* Detailed Description Input */}
