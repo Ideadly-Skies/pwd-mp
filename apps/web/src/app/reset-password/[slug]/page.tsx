@@ -2,6 +2,7 @@
 import * as Yup from 'yup';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import instance from '@/utils/axiosinstance';
 
@@ -12,6 +13,8 @@ const resetPasswordSchema = Yup.object().shape({
 })
 
 export default function ConfirmResetPassword ({params}: any){
+    const router = useRouter()
+
     const {mutate: mutateResetPassword} = useMutation({
             mutationFn: async({password}: any) => {
                 return instance.post('/auth/reset-password', {
@@ -26,6 +29,7 @@ export default function ConfirmResetPassword ({params}: any){
             onSuccess: (res) => {
                 console.log(res)
                 toast.success('Password Successfully reseted')
+                router.push('/login/user')
             },
             onError: (err) => {
                 console.log(err)
@@ -36,9 +40,7 @@ export default function ConfirmResetPassword ({params}: any){
     return(
         <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-md rounded-md">
-          {/* Logo */}
           <div className="flex justify-center">
-            {/* Organizer-specific logo */}
             <svg className="p-10 mt-4" viewBox="0 0 200 36">
               <g fill-rule="evenodd">
                 <g>

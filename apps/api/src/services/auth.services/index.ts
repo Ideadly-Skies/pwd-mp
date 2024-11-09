@@ -1,6 +1,10 @@
 import { prisma } from "@/connection";
 import { IRegisterOrganizer, IRegisterUser } from "./types";
 import { hashPassword } from "@/utils/hash.password";
+import { createToken } from "@/utils/jwt";
+import fs from 'fs';
+import { transporter } from "@/utils/transporter";
+import { compile } from "handlebars";
 
 export const registerUserService = async({firstName, lastName, email, username, password, referralCode}: IRegisterUser) => {
     await prisma.user.create({
@@ -76,7 +80,7 @@ export const resetPasswordService = async({id, password, token}: any) => {
     await prisma.user.update({
         data: {
             password: await hashPassword(password),
-            resetPasswordToken: ''
+            resetPasswordToken: null
         },
         where: {
             id
@@ -101,3 +105,50 @@ export const keepLoginService = async ({ id }: any) => {
 
     return findEventOrganizer;
 };
+
+export const requestVerifyAccountService = async({id}:any) => {
+   const user = await prisma.user.findUnique({
+        where: {
+            id: id
+        },
+        select: {
+            email: true,
+            id: true,
+            role: true,
+            firstName: true,
+            lastName: true
+        }
+    })
+
+    const verifyAccountToken = await createToken({id: user?.id, role: user?.role})
+
+    await prisma.user.update({
+        where: {
+            id: id
+        },
+        data: {
+            resetPasswordToken: verifyAccountToken
+        }
+    })
+
+    const resetUrl = `http://localhost:3000/reset-password/${verifyAccountToken}`;
+        const emailTemplate = fs.readFileSync('./src/public/verify.email.form.html', 'utf-8');
+        const compiledTemplate = await compile(emailTemplate);
+        const personalizedEmailBody = compiledTemplate({
+            firstName: user!.firstName,
+            email: user!.email,
+            url: resetUrl,
+        });
+    
+         // Step 4: Send the email
+         await transporter.sendMail({
+            to: user!.email,
+            subject: 'Reset Your Password',
+            html: personalizedEmailBody,
+        });
+}
+
+export const verifyAccountService = async() => {
+    
+}
+

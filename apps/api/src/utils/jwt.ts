@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken"
 
 interface ICreateTokenParams{
-    id: string,
-    role: string
+    id: string | undefined,
+    role: string | undefined
 }
 
 export const createToken = ({id, role}: ICreateTokenParams) => {

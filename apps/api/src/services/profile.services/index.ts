@@ -24,6 +24,12 @@ export const findUserProfileService = async({id}: any) => {
 }
 
 export const editUserProfileService = async({id, firstName,lastName,email,phoneNumber,uploadedImage}: any) => {
+    const oldImages = await prisma.user.findFirst({
+        where: {
+            id: id
+        }
+    })
+
     await prisma.user.update({
         where: {
             id: id
@@ -36,7 +42,14 @@ export const editUserProfileService = async({id, firstName,lastName,email,phoneN
             profilePictureUrl: uploadedImage.images[0].filename
         }
     })
-    
 
-
+    if(oldImages?.profilePictureUrl){
+        deleteFiles({
+            imagesUploaded: {
+              images: [
+                { path: `src/public/images/${oldImages?.profilePictureUrl}` }
+              ]
+            }
+          });
+    }
 }

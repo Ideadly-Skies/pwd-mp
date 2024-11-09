@@ -49,8 +49,14 @@ export const editUserProfile = async(req: Request, res: Response, next: NextFunc
         const uploadedImage = req.files
 
         await editUserProfileService({id: usersId, firstName,lastName,email,phoneNumber,uploadedImage})
-        
+
+        res.status(200).json({
+            error: false,
+            message: 'Profile successfully edited',
+            data: {}
+        })
     } catch (error) {
         next(error)
     }
 }
+

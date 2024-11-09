@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { comparePassword, hashPassword } from "@/utils/hash.password";
-import { loginOrganizerService, loginUserService, registerUserService, registerOrganizerService, resetPasswordService, keepLoginService } from "@/services/auth.services";
+import { loginOrganizerService, loginUserService, registerUserService, registerOrganizerService, resetPasswordService, keepLoginService, requestVerifyAccountService, verifyAccountService } from "@/services/auth.services";
 import { createToken } from "@/utils/jwt";
 import fs from 'fs';
 import {compile} from 'handlebars'
@@ -165,11 +165,11 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         });
 
         // Step 4: Send the email
-        // await transporter.sendMail({
-        //     to: user.email,
-        //     subject: 'Reset Your Password',
-        //     html: personalizedEmailBody,
-        // });
+        await transporter.sendMail({
+            to: user.email,
+            subject: 'Reset Your Password',
+            html: personalizedEmailBody,
+        });
 
         res.status(200).json({ 
             error: false,
@@ -220,6 +220,40 @@ export const keepLogin = async(req: Request, res: Response, next: NextFunction) 
         })
     } catch (error) {
         console.log(error)
+        next(error)
+    }
+}
+
+export const requestVerifyAccount = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {usersId} = req.body
+
+        await requestVerifyAccountService({id: usersId})
+
+        res.status(200).json({
+            error: false,
+            message: 'Account verification request sended, please check your email',
+            data: {}
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const verifyAccount = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {usersId} = req.body
+        const {authorization} = req.headers
+
+        await verifyAccountService
+
+    res.status(200).json({
+        error: false,
+        message: 'Your account is now verified',
+        data: {}
+    })    
+    } catch (error) {
+        next(error)
     }
 }
 
