@@ -47,6 +47,7 @@ function Navbar() {
   const token = authStore((state) => state.token); // Access token from authStore
   const name = authStore((state) => state.firstName);
   const handleLogout = authStore((state) => state.setAuthLogout)
+  const profilePictureUrl = authStore((state) => state.profilePictureUrl)
   const router = useRouter()
 
   const isTokenValid = (token: string) => {
@@ -151,7 +152,7 @@ function Navbar() {
               <DropdownMenuTrigger className="cursor-pointer">
                 <Avatar>
                   <AvatarImage
-                    src="https://github.com/shadcn.png"
+                   src={`http://localhost:4700/images/${profilePictureUrl}`}
                     alt="@shadcn"
                   />
                   <AvatarFallback>CN</AvatarFallback>

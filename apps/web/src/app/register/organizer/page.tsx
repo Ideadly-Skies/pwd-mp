@@ -198,7 +198,7 @@ export default function RegisterOrganizerPage() {
             {/* Submit Button */}
             <button
               type="submit"
-            //   disabled={isSubmitting}
+              disabled={isSubmitting}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg focus:outline-none focus:ring-4 focus:ring-orange-300"
             >
               Create account

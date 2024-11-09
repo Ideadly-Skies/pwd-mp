@@ -11,9 +11,8 @@ import Link from 'next/link';
 
 // Formik validation schema using Yup
 const LoginUserSchema = Yup.object({
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
+  email: Yup.string().
+  required('Email is required'),
   password: Yup.string()
     .min(6, 'Password must be at least 6 characters')
     .required('Password is required'),
@@ -35,11 +34,12 @@ const LoginForm: FC = () => {
             token: res?.data?.data?.token, 
             firstName: res?.data?.data?.firstName,
             lastName: res?.data?.data?.lastName,
-            role: res?.data?.data?.role
+            role: res?.data?.data?.role,
+            email: res?.data?.data?.email
           })
+          console.log(setAuth.email)
           toast.success(res.data.message)
           router.push('/')
-
         },
         onError: (err) => {
           console.log(err)
@@ -94,7 +94,7 @@ const LoginForm: FC = () => {
             <Form className="space-y-4">
               <div>
                 <Field
-                  type="email"
+                  type="text"
                   name="email"
                   placeholder="Email address"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"

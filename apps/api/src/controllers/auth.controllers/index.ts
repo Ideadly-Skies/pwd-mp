@@ -6,6 +6,7 @@ import fs from 'fs';
 import {compile} from 'handlebars'
 import prisma from "@/prisma";
 import { transporter } from "@/utils/transporter";
+import { IUser } from "./types";
 
 export const registerUser = async(req: Request, res: Response, next: NextFunction) => {
     try {
@@ -120,12 +121,12 @@ export const loginOrganizer = async (req: Request, res: Response, next: NextFunc
             data: {
                 token,
                 email: organizer.email, // Ensure you're sending the organizer's email
-                name: `${organizer.firstName} ${organizer.lastName}`,
+                firstName: organizer.firstName,
+                lastName: organizer.lastName,
                 profilePicture: organizer.pic,
             },
         });
     } catch (error) {
-        console.log(error)
         next(error);
     }
 }
@@ -203,7 +204,8 @@ export const keepLogin = async(req: Request, res: Response, next: NextFunction) 
     try {
         const {usersId} = req.body 
         
-        const user = await keepLoginService({id: usersId})
+        const user: any = await keepLoginService({id: usersId})
+        // console.log(user)
         
         res.status(200).json({
             error: false, 
@@ -212,6 +214,8 @@ export const keepLogin = async(req: Request, res: Response, next: NextFunction) 
                 firstName: user.firstName,
                 lastName: user.lastName,
                 role: user.role, 
+                email: user.email,
+                profilePictureUrl: user.profilePictureUrl
             }
         })
     } catch (error) {
