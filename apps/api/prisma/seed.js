@@ -1,225 +1,161 @@
-import { PrismaClient, EventType, Status } from '@prisma/client';
-import bcrypt from 'bcrypt';
-const prisma = new PrismaClient();
-
-const saltRounds = 10;
-const hashPassword = async (password) => {
-  return await bcrypt.hash(password, saltRounds);
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-
-// Seed data arrays
-const categories = [
-  { name: 'Technology' },
-];
-
-const eventOrganizers = [
-  {
-    firstName: 'Alice',
-    lastName: 'Johnson',
-    username: 'alicej',
-    email: 'alice@organizers.com',
-    password: 'abc123',
-    companyName: 'Event Masters',
-    phoneNumber: '123-456-7890',
-    pic: 'http://example.com/pic.jpg',
-  },
-];
-
-const users = [
-  {
-    firstName: 'Ahmad',
-    lastName: 'Subejo',
-    username: 'bejo123',
-    email: 'bejo@gmail.com',
-    password: 'abc123',
-    referralCode: 'ABC123',
-    phoneNumber: '123-456-7890',
-    totalPoint: 100,
-  },
-];
-
-const events = [
-  {
-    name: 'Tech Conference 2024',
-    type: EventType.ONLINE,
-    locationName: 'Virtual Event',
-    location: 'http://techconference.com',
-    url: 'http://techconference.com/register',
-    description: 'A conference about the latest in technology.',
-    startDate: new Date('2024-05-10T09:00:00.000Z'),
-    endDate: new Date('2024-05-12T17:00:00.000Z'),
-    isPaid: true,
-    capacity: 100,
-  },
-];
-
-const referralPoints = [
-  {
-    point: 50,
-    expiry: new Date('2025-01-01T00:00:00.000Z'),
-  },
-];
-
-const referralDiscounts = [
-  {
-    discount: 20,
-    expiry: new Date('2025-01-01T00:00:00.000Z'),
-    isUsed: false,
-  },
-];
-
-const eventTickets = [
-  {
-    name: 'Standard Admission',
-    price: 100,
-    available: 50,
-    bookSeat: 0,
-    discount: 10,
-    discountStart: new Date('2024-04-01T00:00:00.000Z'),
-    discountExpiry: new Date('2024-05-01T00:00:00.000Z'),
-    startDate: new Date('2024-05-10T09:00:00.000Z'),
-    endDate: new Date('2024-05-12T17:00:00.000Z'),
-  },
-];
-
-const eventImages = [
-  {
-    url: 'http://example.com/event-image.jpg',
-  },
-];
-
-async function main() {
-  // Seed Categories
-  categories.forEach(async (category) => {
-    await prisma.category.create({ data: category });
-  });
-
-  // Seed Event Organizers with hashed passwords
-  eventOrganizers.forEach(async (organizer) => {
-    await prisma.eventOrganizer.create({
-      data: {
-        ...organizer,
-        password: await hashPassword(organizer.password),
-      },
+Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("@prisma/client");
+const bcrypt_1 = require("bcrypt");
+const prisma = new client_1.PrismaClient();
+function main() {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Seed categories (in the correct order)
+        const categoryNames = ['education', 'business', 'health'];
+        const categories = yield Promise.all(categoryNames.map((name) => __awaiter(this, void 0, void 0, function* () {
+            const existingCategory = yield prisma.category.findFirst({
+                where: { name },
+            });
+            if (existingCategory)
+                return existingCategory;
+            return prisma.category.create({ data: { name } });
+        })));
+        // Seed tags
+        const tagNames = ['Outdoor', 'Indoor', 'Family Friendly', 'Adults Only', 'Live Music'];
+        const tags = yield Promise.all(tagNames.map((name) => __awaiter(this, void 0, void 0, function* () {
+            const existingTag = yield prisma.tag.findFirst({
+                where: { name },
+            });
+            if (existingTag)
+                return existingTag;
+            return prisma.tag.create({ data: { name } });
+        })));
+        // Seed users
+        const hashedPassword = yield (0, bcrypt_1.hash)('11111111', 15);
+        const users = yield Promise.all(Array.from({ length: 10 }, (_, index) => __awaiter(this, void 0, void 0, function* () {
+            const email = `seeduser${index + 1}@example.com`;
+            const username = `seeduser${index + 1}`;
+            const existingUser = yield prisma.user.findFirst({
+                where: { OR: [{ email }, { username }] },
+            });
+            if (existingUser)
+                return existingUser;
+            return prisma.user.create({
+                data: {
+                    firstName: `SeedUser ${index + 1}`,
+                    lastName: `LastName${index + 1}`,
+                    username,
+                    email,
+                    password: hashedPassword,
+                    referralCode: `REF${index + 1}${Math.random().toString(36).substring(7)}`,
+                    totalPoint: Math.floor(Math.random() * 1000),
+                    isValid: true,
+                },
+            });
+        })));
+        // Seed event organizers
+        const organizers = yield Promise.all(Array.from({ length: 10 }, (_, index) => __awaiter(this, void 0, void 0, function* () {
+            const email = `seedorganizer${index + 1}@example.com`;
+            const username = `seedorg${index + 1}`;
+            const existingOrganizer = yield prisma.eventOrganizer.findFirst({
+                where: { OR: [{ email }, { username }] },
+            });
+            if (existingOrganizer)
+                return existingOrganizer;
+            return prisma.eventOrganizer.create({
+                data: {
+                    firstName: `SeedOrganizer ${index + 1}`,
+                    lastName: `OrgLast${index + 1}`,
+                    username,
+                    email,
+                    password: hashedPassword,
+                    companyName: `SeedCompany ${index + 1}`,
+                    phoneNumber: `+1${Math.floor(Math.random() * 9000000000 + 1000000000)}`,
+                    pic: `Seed Person In Charge ${index + 1}`,
+                },
+            });
+        })));
+        // Seed events
+        const events = yield Promise.all(Array.from({ length: 10 }, (_, index) => __awaiter(this, void 0, void 0, function* () {
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 30));
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + Math.floor(Math.random() * 5) + 1);
+            const eventName = `SeedEvent ${index + 1}`;
+            const existingEvent = yield prisma.event.findFirst({
+                where: { name: eventName },
+            });
+            if (existingEvent)
+                return existingEvent;
+            return prisma.event.create({
+                data: {
+                    name: eventName,
+                    type: categoryNames[Math.floor(Math.random() * categoryNames.length)], // Ensure event type matches one of the allowed categories
+                    locationName: `Seed Venue ${index + 1}`,
+                    location: `Seed City ${index + 1}`,
+                    url: `https://seedevent${index + 1}.example.com`,
+                    description: `Short description for Seed Event ${index + 1}`,
+                    detailedDescription: `Detailed description for Seed Event ${index + 1}. This is a longer text with more information.`,
+                    startDate,
+                    endDate,
+                    isPaid: Math.random() > 0.3,
+                    price: parseFloat((Math.random() * 100).toFixed(2)),
+                    capacity: Math.floor(Math.random() * 1000) + 100,
+                    eoId: organizers[Math.floor(Math.random() * organizers.length)].id,
+                    categoryId: categories[Math.floor(Math.random() * categories.length)].id,
+                    tags: {
+                        connect: [
+                            { id: tags[Math.floor(Math.random() * tags.length)].id },
+                            { id: tags[Math.floor(Math.random() * tags.length)].id },
+                        ],
+                    },
+                    images: {
+                        create: [
+                            { url: `https://example.com/seedevents/${index + 1}/image1.jpg` },
+                            { url: `https://example.com/seedevents/${index + 1}/image2.jpg` },
+                        ],
+                    },
+                    tickets: {
+                        create: [
+                            {
+                                name: 'Regular Seed Ticket',
+                                price: Math.floor(Math.random() * 100) * 1000 + 50000,
+                                available: 100,
+                                bookSeat: 0,
+                                discount: Math.floor(Math.random() * 30),
+                                discountStart: startDate,
+                                discountExpiry: endDate,
+                                startDate,
+                                endDate,
+                            },
+                            {
+                                name: 'VIP Seed Ticket',
+                                price: Math.floor(Math.random() * 200) * 1000 + 100000,
+                                available: 50,
+                                bookSeat: 0,
+                                discount: Math.floor(Math.random() * 20),
+                                discountStart: startDate,
+                                discountExpiry: endDate,
+                                startDate,
+                                endDate,
+                            },
+                        ],
+                    },
+                },
+            });
+        })));
+        console.log(`Seeded ${users.length} users, ${organizers.length} organizers, and ${events.length} events.`);
     });
-  });
-
-  // Seed Users with hashed passwords
-  users.forEach(async (user) => {
-    await prisma.user.create({
-      data: {
-        ...user,
-        password: await hashPassword(user.password),
-      },
-    });
-  });
-
-  // Fetching organizer and category to assign foreign keys in events
-  const organizer = await prisma.eventOrganizer.findFirst({ where: { email: eventOrganizers[0].email } });
-  const category = await prisma.category.findFirst({ where: { name: categories[0].name } });
-
-  // Seed Events
-  events.forEach(async (event) => {
-    await prisma.event.create({
-      data: {
-        ...event,
-        eoId: organizer.id,
-        categoryId: category.id,
-      },
-    });
-  });
-
-  // Fetch user and event to assign foreign keys in referral points, discounts, transactions
-  const user = await prisma.user.findFirst({ where: { email: users[0].email } });
-  const event = await prisma.event.findFirst({ where: { name: events[0].name } });
-
-  // Seed Referral Points
-  referralPoints.forEach(async (point) => {
-    await prisma.referralPoint.create({
-      data: {
-        ...point,
-        userId: user.id,
-      },
-    });
-  });
-
-  // Seed Referral Discounts
-  referralDiscounts.forEach(async (discount) => {
-    await prisma.referralDiscount.create({
-      data: {
-        ...discount,
-        userId: user.id,
-      },
-    });
-  });
-
-  // Seed Event Tickets
-  eventTickets.forEach(async (ticket) => {
-    await prisma.eventTicket.create({
-      data: {
-        ...ticket,
-        eventId: event.id,
-      },
-    });
-  });
-
-  // Seed Event Images
-  eventImages.forEach(async (image) => {
-    await prisma.eventImage.create({
-      data: {
-        ...image,
-        eventId: event.id,
-      },
-    });
-  });
-
-  // Seed Transactions
-  const transaction = await prisma.transaction.create({
-    data: {
-      eventId: event.id,
-      totalPrice: 100,
-      userId: user.id,
-    },
-  });
-
-  // Seed Transaction Details
-  await prisma.transactionDetail.create({
-    data: {
-      transactionId: transaction.id,
-      ticketId: (await prisma.eventTicket.findFirst({ where: { eventId: event.id } })).id,
-      price: 100,
-      qty: 1,
-    },
-  });
-
-  // Seed Transaction Status
-  await prisma.transactionStatus.create({
-    data: {
-      status: Status.PAID,
-      transactionId: transaction.id,
-    },
-  });
-
-  // Seed Reviews
-  await prisma.review.create({
-    data: {
-      userId: user.id,
-      eventId: event.id,
-      comments: 'Great event!',
-      rating: 5,
-      feedback: 'Loved the content and organization.',
-    },
-  });
 }
-
 main()
-  .then(() => {
-    console.log('Database seeded');
-  })
-  .catch((e) => {
+    .catch((e) => {
     console.error(e);
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+})
+    .finally(() => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma.$disconnect();
+}));
