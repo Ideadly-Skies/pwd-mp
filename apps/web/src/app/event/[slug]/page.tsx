@@ -5,6 +5,9 @@ import axios from 'axios';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { useRouter, usePathname } from 'next/navigation';
 import { format } from 'date-fns';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
+import instance from '@/utils/axiosinstance';
 
 // Function to format date
 function formatDate(dateString: string) {
@@ -25,7 +28,7 @@ export default function EventPage() {
   const router = useRouter()
   const pathname = usePathname()
   const id = pathname.split('/')[2]
-
+  
   // console.log("from event page",pathname.split('/'))
   // Using `useQueries` to fetch both the specific event by `id` and all events
   const [eventQuery, allEventsQuery] = useQueries({
@@ -49,26 +52,25 @@ export default function EventPage() {
       },
     ],
   });
-
+  
   let event = eventQuery.data
-  console.log(event) 
-
+  
   let allEvents = allEventsQuery.data
   // console.log("all events", allEvents)
-
+  
   // Filter out the current event from all events
   const otherEvents = allEvents?.filter((e: any) => e.id !== Number(id));
-
+  
   // Create a ref for the Tickets Section
   const ticketsSectionRef = useRef<HTMLDivElement | null>(null);
   
   // State for ticket count
   const [regularTicketCount, setRegularTicketCount] = useState(0);
-
+  
   // Functions to handle increment and decrement
   const incrementTicket = () => setRegularTicketCount(prevCount => prevCount + 1);
   const decrementTicket = () => setRegularTicketCount(prevCount => Math.max(0, prevCount - 1));
-
+  
   // Scroll to the Tickets Section when button is clicked
   const scrollToTickets = () => {
     if (ticketsSectionRef.current) {
@@ -77,6 +79,107 @@ export default function EventPage() {
       window.scrollTo({ top: topPosition, behavior: 'smooth' });
     }
   };
+
+  const loadSnapScript = (midtransClientKey: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (!midtransClientKey) {
+        console.error("Midtrans Client Key is not defined");
+        reject("Midtrans Client Key is not defined");
+        return;
+      }
+  
+      if (document.querySelector(`script[src="https://app.sandbox.midtrans.com/snap/snap.js"]`)) {
+        console.log("Snap script already loaded");
+        resolve(); // Resolve immediately if already loaded
+        return;
+      }
+  
+      const script = document.createElement("script");
+      script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+      script.setAttribute("data-client-key", midtransClientKey);
+      script.async = true;
+  
+      script.onload = () => {
+        console.log("Snap script loaded successfully");
+        resolve();
+      };
+  
+      script.onerror = () => {
+        console.error("Failed to load Snap script");
+        reject("Failed to load Snap script");
+      };
+  
+      document.body.appendChild(script);
+    });
+  };
+
+  // handleCheckout function
+  const handleCheckout = async() => {
+    if (regularTicketCount > 0) {    
+      const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
+
+      try {
+        await loadSnapScript(midtransClientKey as string)
+
+        mutateCreateTransaction({
+          eventId: id,
+          totalPrice: Math.round(event.price * regularTicketCount),
+        }); 
+      } catch (error) {
+        console.error(error)
+        toast.error("Payment system is not ready. Please try again.", { position: "top-center" });
+      }
+                    
+    } else {
+      scrollToTickets(); // Scroll to tickets section if no tickets are selected
+    } 
+  }
+
+  // Define the mutation
+  const { mutate: mutateCreateTransaction } = useMutation({
+    mutationFn: async (data: { eventId: string; totalPrice: number }) => {
+      // Send request to create transaction
+      return await instance.post('/transaction/create-transaction', data);
+    },
+
+    onSuccess: (res) => {
+      console.log(res.data)
+      const transactionToken = res.data.token; // Extract transaction token from response
+      const redirectUrl = res.data.redirect_url; // Extract redirect URL from response
+
+      console.log(transactionToken)
+      console.log(redirectUrl)
+
+      // Handle payment using Snap popup or redirect URL
+      if (window.snap) {
+        window.snap.pay(transactionToken, {
+          onSuccess: function (result) {
+            alert("Payment successful!");
+            console.log("Payment success:", result);
+          },
+          onPending: function (result) {
+            alert("Waiting for your payment!");
+            console.log("Payment pending:", result);
+          },
+          onError: function (result) {
+            alert("Payment failed!");
+            console.error("Payment failed:", result);
+          },
+          onClose: function () {
+            alert("You closed the popup without finishing the payment.");
+          },
+        });
+      } else {
+        console.warn("Snap is not available. Redirecting to the payment page...");
+        // window.location.href = redirectUrl 
+      }
+    },
+  
+    onError: (error) => {
+      console.error("Transaction creation failed:", error);
+      toast.error("Transaction creation failed", { position: "top-center" });
+    },
+  });
 
   // if there are no event being fetched
   if (!event) {
@@ -216,13 +319,7 @@ export default function EventPage() {
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <button
                 className="bg-orange-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-orange-600 w-full"
-                onClick={() => {
-                  if (regularTicketCount > 0) {
-                    router.push('/checkout'); // Navigate to checkout page if ticket count > 0
-                  } else {
-                    scrollToTickets(); // Scroll to tickets section if no tickets are selected
-                  }
-                }}
+                onClick={() => {handleCheckout()}}
               >
                 {regularTicketCount > 0 ? 'Checkout' : 'Select tickets'}
               </button>
