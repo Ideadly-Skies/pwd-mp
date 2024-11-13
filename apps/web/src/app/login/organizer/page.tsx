@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import authStore from '@/zustand/authStore';
 import instance from '@/utils/axiosinstance';
 import { toast } from 'react-toastify';
+import { errorHandler } from '@/utils/errorHandler';
+import Link from 'next/link';
 
 const LoginOrganizerSchema = Yup.object({
   emailOrUsername: Yup.string().required('Email is required'),
@@ -35,11 +37,11 @@ const OrganizerLoginForm: FC = () => {
             email: res?.data?.data?.email
           })
           toast.success(res.data.message)
-          router.push('/')
+          router.push('/dashboard')
         },
         onError: (err) => {
           console.log(err)
-          toast.error('something went wrong')
+          errorHandler(err)
         }
       })
   return (
@@ -133,6 +135,13 @@ const OrganizerLoginForm: FC = () => {
             </Form>
           )}
         </Formik>
+        <div>
+        <h1 className='mt-4 text-sm font-semibold text-gray-600'>Want to be an Organizer? {'  '}
+          <Link href='/register/organizer' className='text-orange-500 hover:underline'>Register yourself here</Link>
+        </h1>
+        <span className='mt-4 text-xs font-semibold text-gray-500'>Forget your Password? {' '}</span>
+        <Link href='/reset-password' className='text-orange-500 text-xs hover:underline'>Click here to reset Password</Link>
+        </div>
 
         {/* Divider */}
         <div className="flex items-center justify-center my-4">

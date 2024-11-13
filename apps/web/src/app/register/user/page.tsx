@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import instance from '@/utils/axiosinstance';
 import { toast } from 'react-toastify';
+import { errorHandler } from '@/utils/errorHandler';
 
 const RegisterSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Required'),
@@ -22,13 +23,14 @@ export default function RegisterUserPage() {
     const router = useRouter()
 
    const{mutate: mutateRegisterUser } = useMutation({
-        mutationFn: async({email, username, firstName, lastName, password}:any) => {
+        mutationFn: async({email, username, firstName, lastName, password, referralCode}:any) => {
             return await instance.post('/auth/register', {
                 email,
                 username,
                 firstName,
                 lastName,
-                password
+                password,
+                referralCode
             })
         },
         onSuccess: (res) => {
@@ -40,7 +42,7 @@ export default function RegisterUserPage() {
         },
         onError: (err) => {
             console.log(err)
-            toast.error('Something went wrong')
+            errorHandler(err)
         } 
     })
 
@@ -55,17 +57,19 @@ export default function RegisterUserPage() {
           lastName: '',
           username: '',
           password: '',
+          referralCode: ''
         }}
         validationSchema={RegisterSchema}
         onSubmit={(values) => {
-        //   console.log(values);
+          console.log(values);
           // Submit form data to your API
           mutateRegisterUser({
             email: values.email,
             username: values.username,
             firstName: values.firstName,
             lastName: values.lastName,
-            password: values.password
+            password: values.password,
+            referralCode: values.referralCode
           })
         }}
       >
@@ -140,9 +144,6 @@ export default function RegisterUserPage() {
                 </div>
             </div>
 
-            
-
-            {/* Password Field */}
             <div className="mb-4">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -156,10 +157,24 @@ export default function RegisterUserPage() {
               <ErrorMessage name="password" component="div" className="text-red-500 text-sm" />
             </div>
 
+            <div className="mb-4">
+              <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700">
+                Referral Code (Optional)
+              </label>
+              <Field
+                name="referralCode"
+                type="text"
+                placeholder="Referral Code"
+                className="w-full p-3 border rounded-lg focus:outline-none focus:border-orange-500 hover:border-orange-500"
+              />
+              <ErrorMessage name="referralCode" component="div" className="text-red-500 text-sm" />
+              <span className='text-sm text-gray-500 font-semibold'>Secure your 10% Discount by registering using Refferal code </span>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isSubmitting}
+              // disabled={isSubmitting}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg focus:outline-none focus:ring-4 focus:ring-orange-300"
             >
               Create account

@@ -4,7 +4,8 @@ export interface IRegisterUser{
     email: string
     username: string
     password: string
-    referralCode: string
+    newReferralCode: string
+    referralCode?: string
     
 }
 

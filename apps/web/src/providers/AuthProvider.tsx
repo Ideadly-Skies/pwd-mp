@@ -31,7 +31,7 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
         } catch (err) {
             console.log(err);
             toast.error('Please re-login, your session is expired');
-            // router.push('/'); // Redirect to landing page if fetching auth fails
+            router.push('/'); // Redirect to landing page if fetching auth fails
         } finally {
             setIsKeepAuth(true);
         }

@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import instance from '@/utils/axiosinstance';
+import { errorHandler } from '@/utils/errorHandler';
 
 
 const resetPasswordSchema = Yup.object().shape({
@@ -28,12 +29,12 @@ export default function ConfirmResetPassword ({params}: any){
             },
             onSuccess: (res) => {
                 console.log(res)
-                toast.success('Password Successfully reseted')
+                toast.success(res.data.message)
                 router.push('/login/user')
             },
             onError: (err) => {
                 console.log(err)
-                toast.error('Failed to reset Password')
+                errorHandler(err)
             }
         })
        

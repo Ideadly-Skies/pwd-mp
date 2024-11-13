@@ -4,6 +4,7 @@ import instance from '@/utils/axiosinstance';
 import { useMutation, UseQueryResult } from "@tanstack/react-query";
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import { errorHandler } from '@/utils/errorHandler';
 
 // Formik
 import { Formik, Field, Form, ErrorMessage, useFormikContext } from 'formik';
@@ -64,7 +65,7 @@ export default function CreateEventPage() {
 
     // state to hold form values and initialize Formik for page 2
     const initialValues2 = {
-        mainImage: null,
+        images: null,
         mainImageUrl: '',
         summary: '',
         detailedDescription: ''
@@ -126,17 +127,13 @@ export default function CreateEventPage() {
         },
 
         onSuccess: (res) => {
-            toast.success("Create event success", {
-                position: "top-center"
-            })
+            toast.success(res.data.message)
             router.push('/');
             console.log(res);
         },
 
         onError: (err) => {
-            toast.error("create event failed", {
-                position: "top-center"
-            })
+            errorHandler(err)
             console.log(err);
         }
     })
@@ -563,7 +560,7 @@ export default function CreateEventPage() {
                                                         const file = e.target.files[0];
                                                         if (file) {
                                                             setFieldValue('mainImageUrl', URL.createObjectURL(file));
-                                                            setFieldValue('mainImage', file);  // Store the file for FormData
+                                                            setFieldValue('images', file);  // Store the file for FormData
                                                         }
                                                     }}
                                                 />

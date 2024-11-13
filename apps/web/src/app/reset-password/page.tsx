@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { useMutation } from '@tanstack/react-query';
 import instance from '@/utils/axiosinstance';
 import { toast } from 'react-toastify';
+import { errorHandler } from '@/utils/errorHandler';
 
 
 // Validation schema
@@ -26,7 +27,7 @@ export default function ResetPassword() {
       console.log(res)
     },
     onError: (err) => {
-      toast.error(err.message)
+      errorHandler(err)
       console.log(err)
     }
   })

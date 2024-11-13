@@ -16,5 +16,7 @@ router.post('/reset-password', verifyToken, verifyResetPassword)
 router.get('/', verifyToken, keepLogin)
 router.post('/request-verify-account', verifyToken, requestVerifyAccount)
 router.patch('/verify-account', verifyToken, verifyAccount)
+router.patch('/change-password-organizer')
+router.patch('/change-password-user')
 
 export default router

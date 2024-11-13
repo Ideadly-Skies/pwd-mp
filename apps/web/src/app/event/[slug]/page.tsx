@@ -51,7 +51,7 @@ export default function EventPage() {
   });
 
   let event = eventQuery.data
-  console.log(event) 
+  // console.log(event) 
 
   let allEvents = allEventsQuery.data
   // console.log("all events", allEvents)

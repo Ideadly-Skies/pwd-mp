@@ -6,15 +6,55 @@ import fs from 'fs';
 import { transporter } from "@/utils/transporter";
 import { compile } from "handlebars";
 
-export const registerUserService = async({firstName, lastName, email, username, password, referralCode}: IRegisterUser) => {
-    await prisma.user.create({
-        data: {
-            firstName,
-            lastName,
-            email,
-            username,
-            password,
-            referralCode
+export const registerUserService = async({firstName, lastName, email, username, password, referralCode, newReferralCode}: IRegisterUser) => {
+    await prisma.$transaction( async (prisma) => {
+        const user = await prisma.user.create({
+            data: {
+                firstName,
+                lastName,
+                email,
+                username,
+                password,
+                referralCode: newReferralCode
+            }
+        })
+    
+        if(referralCode){
+            const referrer = await prisma.user.findUnique({
+                where: {
+                    referralCode
+                }
+            })
+            console.log('Referrer:',referrer)
+    
+            if(referrer){
+                await prisma.referralPoint.create({
+                    data: {
+                        point: 10000,
+                        expiry: new Date(new Date().setMonth(new Date().getMonth() + 3)),
+                        userId: referrer.id
+                    }  
+                })
+    
+                await prisma.user.update({
+                    where: {
+                        referralCode
+                    },
+                    data: {
+                        totalPoint: {
+                            increment:10000
+                        }
+                    }
+                })
+    
+                await prisma.referralDiscount.create({
+                    data: {
+                        userId: user.id,
+                        discount: 0.1,
+                        expiry: new Date(new Date().setMonth(new Date().getMonth() + 3))
+                    }
+                })
+            }
         }
     })
 }
@@ -75,6 +115,7 @@ export const resetPasswordService = async({id, password, token}: any) => {
             resetPasswordToken: token
         }
     })
+
     if(!findUser?.id) throw {msg: 'Link expired, please request another one', status: 406}
 
     await prisma.user.update({
@@ -131,7 +172,7 @@ export const requestVerifyAccountService = async({id}:any) => {
         }
     })
 
-    const resetUrl = `http://localhost:3000/reset-password/${verifyAccountToken}`;
+        const resetUrl = `http://localhost:3000/verify-account/${verifyAccountToken}`;
         const emailTemplate = fs.readFileSync('./src/public/verify.email.form.html', 'utf-8');
         const compiledTemplate = await compile(emailTemplate);
         const personalizedEmailBody = compiledTemplate({
@@ -148,7 +189,40 @@ export const requestVerifyAccountService = async({id}:any) => {
         });
 }
 
-export const verifyAccountService = async() => {
-    
+export const verifyAccountService = async({id}: any) => {
+
+    const findUser = await prisma.user.findUnique({
+        where: {
+            id
+        }
+    })
+ 
+    if(!findUser?.id && findUser!.resetPasswordToken?.length === 0) throw {msg: 'Link expired, please request another one', status: 406}
+
+    await prisma.user.update({
+        data: {
+            isValid: true,
+            resetPasswordToken: null
+        },
+        where: {
+            id
+        }
+    })
+}
+
+export const changeUserPasswordService = async({usersId, oldPassword, password}: any) => {
+    return await prisma.user.findUnique({
+        where: {
+            id: usersId
+        }
+    })
+}
+
+export const changeOrganizerPasswordService = async({usersId, oldPassword, password}: any) => {
+    return await prisma.eventOrganizer.findUnique({
+        where: {
+            id: usersId
+        }
+    })
 }
 

@@ -1,10 +1,34 @@
+'use client';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useMutation } from "@tanstack/react-query"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
+import instance from "@/utils/axiosinstance"
+import { errorHandler } from "@/utils/errorHandler";
 
-export default function VerifyEmail() {
+export default function VerifyEmail({params}: any) {
+    const router = useRouter()
+
+    const {mutate: mutateVerifyAccount} = useMutation({
+        mutationFn: async() => {
+            return instance.patch('/auth/verify-account',
+            {
+                headers: {
+                    'Authorization': `Bearer ${params?.slug}`
+                }
+            })
+        },
+        onSuccess: (res) => {
+            console.log(res)
+            toast.success(res.data.message)
+            router.push('/profile')
+        },
+        onError: (err) => {
+            errorHandler(err)
+            console.error(err.message);
+        }
+    })
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <Card className="w-full max-w-md">
@@ -47,6 +71,7 @@ export default function VerifyEmail() {
           <Button 
             className="w-full bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500 font-bold"
             size="lg"
+            onClick={() => mutateVerifyAccount()}
           >
             Verify Account
           </Button>

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { createTransactionService } from "@/services/transaction.service";
+import { createTransactionService, getTransactionListService } from "@/services/transaction.service";
 
 export const createTransaction = async(req: Request, res: Response, next: NextFunction) => {
     try {
@@ -28,5 +28,22 @@ export const createTransaction = async(req: Request, res: Response, next: NextFu
         } else {
             next(error); 
         }
+    }
+}
+
+export const getTransactionList = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {usersId} = req.body
+        const {page = 1, limit = 8} = req.query
+
+        const transactionList = await getTransactionListService({usersId, page: Number(page), limit: Number(limit)})
+
+        res.status(200).json({
+            error: false,
+            message: 'Transaction retrieved',
+            data: transactionList
+        })
+     } catch (error) {
+        next(error)
     }
 }
