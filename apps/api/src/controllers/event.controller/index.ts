@@ -66,12 +66,12 @@ import { createEventService, getEventByIdService, getEventService } from "@/serv
 export const createEvent = async(req: Request, res: Response, next: NextFunction) => {
     try {
         let {name, type, category, location, locationName, summary, detailedDescription, eventStartDate, eventEndDate, capacity, eventPrice, usersId, tags} = req.body
-        
+
         // set category to lowercase
         category = category.toLowerCase()
 
         // Assuming you're using Multer and `mainImage` is the key for the uploaded file(s)
-        const mainImageFile = (req.files as { [fieldname: string]: Express.Multer.File[] }).images?.[0];
+        const mainImageFile = (req.files as { [fieldname: string]: Express.Multer.File[] }).mainImage?.[0];
         let url = ''
 
         if (mainImageFile) {

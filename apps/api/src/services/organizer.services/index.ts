@@ -95,7 +95,7 @@ export const dashboardPageDataService = async ({usersId}: any) => {
     
       const recentTransactions = events.flatMap((event) => event.transactions)
         .filter((transaction) => transaction.status.some((status) => status.status === 'COMPLETED'))
-        .sort((a, b) => b.id - a.id)
+        .sort((a: any, b: any) => b.id - a.id)
         .slice(0, 10)
         .map(({ id, user, totalPrice }) => ({
           id,

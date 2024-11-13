@@ -118,6 +118,8 @@ export default function EventPage() {
     if (regularTicketCount > 0) {    
       const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
 
+      console.log(midtransClientKey)
+
       try {
         await loadSnapScript(midtransClientKey as string)
 

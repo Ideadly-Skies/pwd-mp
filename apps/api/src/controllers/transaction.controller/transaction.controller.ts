@@ -13,6 +13,7 @@ export const createTransaction = async(req: Request, res: Response, next: NextFu
             isProduction: false,
             serverKey: midtransServerKey
         })
+        console.log('snap:',snap)
 
         // grab usersId, eventId, totalPrice from req.body
         let {usersId, eventId, totalPrice} = req.body

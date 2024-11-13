@@ -1,7 +1,7 @@
 import { prisma } from "../../connection";
 // import { IUser } from "./types";
 
-export const createEventService = async({name, type, category, location, locationName, summary, detailedDescription, eventStartDate, eventEndDate, capacity, usersId, tags, url, isPaid}: any) => {
+export const createEventService = async({name, type, category, location, locationName, summary, detailedDescription, eventStartDate, eventEndDate, capacity, usersId, tags, url, isPaid, eventPrice}: any) => {
     const categoryRecord = await prisma.category.findMany({
         where: {
             name: category,
@@ -37,6 +37,7 @@ export const createEventService = async({name, type, category, location, locatio
                   create: { name: tag },
                 })),
             },
+            price: Number(eventPrice)
         }
     }) 
 }
