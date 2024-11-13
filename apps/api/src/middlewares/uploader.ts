@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { uploadMulter } from '../utils/multer';
 
 export const uploader = (req: Request, res: Response, next: NextFunction) => {
-    const uploaded = uploadMulter.fields([{name: 'mainImage', maxCount: 3}])
+    const uploaded = uploadMulter.fields([{name: 'images', maxCount: 3}])
     const {usersId, authorizationRole} = req.body
 
     uploaded(req, res, function(err){
@@ -11,7 +11,7 @@ export const uploader = (req: Request, res: Response, next: NextFunction) => {
             console.log(req.files)
             if(err) throw {msg: err.message}
             
-            if(!Array.isArray(req?.files) && !req?.files?.mainImage?.length) throw {msg: 'File Tidak Ditemukan'}
+            // if(!Array.isArray(req?.files) && !req?.files?.mainImage?.length) throw {msg: 'File Tidak Ditemukan'}
             
             if(usersId && authorizationRole){
                 req.body.usersId = usersId

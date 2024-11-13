@@ -45,19 +45,22 @@ function Navbar() {
   const [eventSearch, setEventSearch] = useState('');
   const [locationSearch, setLocationSearch] = useState('');
   const token = authStore((state) => state.token); // Access token from authStore
-  const name = authStore((state) => state.firstName);
-  const handleLogout = authStore((state) => state.setAuthLogout)
-  const router = useRouter()
+  const firstName = authStore((state) => state.firstName);
+  const lastName = authStore((state) => state.lastName);
+  const profilePictureUrl = authStore((state) => state.profilePictureUrl);
+  console.log(profilePictureUrl);
+  const handleLogout = authStore((state) => state.setAuthLogout);
+  const router = useRouter();
 
   const isTokenValid = (token: string) => {
-    if(!token) return false
+    if (!token) return false;
     try {
-        const decodedToken = jwtDecode(token)
-        return decodedToken.exp! * 1000 > Date.now();
+      const decodedToken = jwtDecode(token);
+      return decodedToken.exp! * 1000 > Date.now();
     } catch (error) {
-        return false
+      return false;
     }
-  }
+  };
 
   const handleSearch = (e: any) => {
     e.preventDefault();
@@ -65,11 +68,11 @@ function Navbar() {
   };
 
   const handleSignOut = () => {
-    handleLogout()
-    toast.success('Successfully logged out')
+    handleLogout();
+    toast.success('Successfully logged out');
     setTimeout(() => {
-        router.push('/');
-    },1000)
+      router.push('/');
+    }, 1000);
   };
 
   const tokenIsValid = isTokenValid(token);
@@ -124,7 +127,10 @@ function Navbar() {
 
         {/* Navigation Links */}
         <div className="hidden lg:flex space-x-6 items-center">
-          <Link href="/event/all-events" className="text-gray-800 hover:text-red-600">
+          <Link
+            href="/event/all-events"
+            className="text-gray-800 hover:text-red-600"
+          >
             Find Events
           </Link>
           <Link
@@ -147,14 +153,20 @@ function Navbar() {
           {tokenIsValid ? (
             /* Avatar with Dropdown Menu */
             <DropdownMenu>
-                <h1 className='text-[#f05537] font-semibold'> Hello, {name}!</h1>
+              <h1 className="text-[#f05537] font-semibold">
+                {' '}
+                Hello, {firstName}!
+              </h1>
               <DropdownMenuTrigger className="cursor-pointer">
                 <Avatar>
                   <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt="@shadcn"
+                    src={profilePictureUrl? `http://localhost:4700/images/${profilePictureUrl}`: ''}
+                    alt="profile-picture"
                   />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarFallback className='font-semibold'>
+                    {firstName?.[0]}
+                    {lastName?.[0]}
+                  </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
@@ -163,8 +175,8 @@ function Navbar() {
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
                     <User />
-                    <Link href='/profile/user'>
-                    <span>Profile</span>  
+                    <Link href="/profile">
+                      <span>Profile</span>
                     </Link>
                     <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                   </DropdownMenuItem>
@@ -249,7 +261,10 @@ function Navbar() {
               >
                 Log In
               </Link>
-              <Link href="/register/user" className="text-gray-800 hover:text-red-600">
+              <Link
+                href="/register/user"
+                className="text-gray-800 hover:text-red-600"
+              >
                 Sign Up
               </Link>
             </div>

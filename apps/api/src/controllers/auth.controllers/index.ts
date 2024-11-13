@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { comparePassword, hashPassword } from "@/utils/hash.password";
-import { loginOrganizerService, loginUserService, registerUserService, registerOrganizerService, resetPasswordService, keepLoginService } from "@/services/auth.services";
+import { loginOrganizerService, loginUserService, registerUserService, registerOrganizerService, resetPasswordService, keepLoginService, requestVerifyAccountService, verifyAccountService, changeUserPasswordService, changeOrganizerPasswordService } from "@/services/auth.services";
 import { createToken } from "@/utils/jwt";
 import fs from 'fs';
 import {compile} from 'handlebars'
@@ -13,18 +13,35 @@ export const registerUser = async(req: Request, res: Response, next: NextFunctio
         console.log("called")
         console.log(req.body);
 
-        const { firstName, lastName, email, username, password } = req.body
+        const { firstName, lastName, email, username, password, referralCode } = req.body
+        console.log(req.body)
 
         if(!firstName ||!lastName || !email || !username || !password) throw {msg: 'Input cannot be blank',status: 406}
+
+        if (referralCode) {
+            const referrer = await prisma.user.findUnique({
+                where: {
+                    referralCode: referralCode
+                }
+            });
+
+            if (!referrer) {
+                return res.status(400).json({
+                    error: true,
+                    message: 'Invalid referral code. Please check and try again.'
+                });
+            }
+        }
 
         const date = `${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDay()}`
         const id = Date.now()
 
-        const referralCode = `KMPLIN-${id}-${date}`
+        const newReferralCode = `KMPLIN-${id}-${date}`
 
         const hashedPassword = await hashPassword(password)
 
-        await registerUserService({firstName, lastName, email, username, password: hashedPassword, referralCode: referralCode})
+        await registerUserService({firstName, lastName, email, username, password: hashedPassword, referralCode, newReferralCode})
+
         res.status(201).json({
             error: false,
             message: 'Successfully registered',
@@ -33,7 +50,7 @@ export const registerUser = async(req: Request, res: Response, next: NextFunctio
                 lastName: lastName,
                 username: username,
                 email: email,
-                referralCode: referralCode
+                referralCode: newReferralCode
             }
         })
     } catch (error) {
@@ -165,11 +182,11 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         });
 
         // Step 4: Send the email
-        // await transporter.sendMail({
-        //     to: user.email,
-        //     subject: 'Reset Your Password',
-        //     html: personalizedEmailBody,
-        // });
+        await transporter.sendMail({
+            to: user.email,
+            subject: 'Reset Your Password',
+            html: personalizedEmailBody,
+        });
 
         res.status(200).json({ 
             error: false,
@@ -220,6 +237,65 @@ export const keepLogin = async(req: Request, res: Response, next: NextFunction) 
         })
     } catch (error) {
         console.log(error)
+        next(error)
+    }
+}
+
+export const requestVerifyAccount = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {usersId} = req.body
+
+        await requestVerifyAccountService({id: usersId})
+
+        res.status(200).json({
+            error: false,
+            message: 'Account verification request sended, please check your email',
+            data: {}
+        })
+    } catch (error) {
+        console.log(error)
+        next(error)
+    }
+}
+
+export const verifyAccount = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {usersId} = req.body
+        console.log(usersId)
+
+        await verifyAccountService({id: usersId})
+
+    res.status(200).json({
+        error: false,
+        message: 'Your account is now verified',
+        data: {}
+    })    
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const changeUserPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {usersId, oldPassword, password} = req.body 
+
+        await changeUserPasswordService({usersId, oldPassword, password})
+
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const changeOrganizerPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {usersId, oldPassword, password} = req.body
+
+        await changeOrganizerPasswordService({usersId, oldPassword, password})
+
+        
+    } catch (error) {
+        next(error)
     }
 }
 

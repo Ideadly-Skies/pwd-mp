@@ -3,6 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useMutation } from '@tanstack/react-query';
 import instance from '@/utils/axiosinstance';
+import { toast } from 'react-toastify';
+import { errorHandler } from '@/utils/errorHandler';
 
 
 // Validation schema
@@ -21,9 +23,11 @@ export default function ResetPassword() {
        })
     },
     onSuccess: (res) => {
+      toast.success(res.data.message)
       console.log(res)
     },
     onError: (err) => {
+      errorHandler(err)
       console.log(err)
     }
   })

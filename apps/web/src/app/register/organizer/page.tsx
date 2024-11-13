@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import instance from '@/utils/axiosinstance';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { errorHandler } from '@/utils/errorHandler';
 
 const RegisterSchema = Yup.object().shape({
   firstName: Yup.string().required('First name is required'),
@@ -44,7 +45,7 @@ export default function RegisterOrganizerPage() {
             },
             onError: (err) => {
                 console.log(err)
-                toast.error('Something went Wrong')
+                errorHandler(err)
             }
         })
 

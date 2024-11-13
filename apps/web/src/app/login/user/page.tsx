@@ -8,6 +8,7 @@ import {useRouter} from 'next/navigation'
 import authStore from '@/zustand/authStore';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
+import { errorHandler } from '@/utils/errorHandler';
 
 // Formik validation schema using Yup
 const LoginUserSchema = Yup.object({
@@ -43,7 +44,7 @@ const LoginForm: FC = () => {
         },
         onError: (err) => {
           console.log(err)
-          toast.error('something went wrong')
+          errorHandler(err)
         }
       })
   return (
@@ -134,8 +135,9 @@ const LoginForm: FC = () => {
         <div>
           <h1 className='mt-4 text-sm font-semibold text-gray-600'>Are you an registered Organizer? {'  '}
           <Link href='/login/organizer' className='text-orange-500 hover:underline'>Click here to Login</Link>
-
           </h1>
+          <span className='mt-4 text-xs font-semibold text-gray-500'>Forget your Password? {' '}</span>
+          <Link href='/reset-password' className='text-orange-500 text-xs hover:underline'>Click here to reset Password</Link>
         </div>
 
         {/* Divider */}
