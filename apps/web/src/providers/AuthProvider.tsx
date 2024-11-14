@@ -4,6 +4,7 @@ import instance from '@/utils/axiosinstance';
 import authStore from '@/zustand/authStore';
 import { usePathname, useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import Link from 'next/link';
 
 interface IAuthProviderProps {
     children: ReactNode;
@@ -13,6 +14,7 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
     const router = useRouter();
     const pathname = usePathname();
     const [isKeepAuth, setIsKeepAuth] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState(true)
 
     const token = authStore((state) => state.token);
     const role = authStore((state) => state.role)
@@ -46,25 +48,44 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
     }, [token]);
 
     useEffect(() => {
-        // Redirect to home if logged in and accessing login pages
-        if ((pathname === '/login/user' || pathname === '/login/organizer') && token && role) {
-            router.push('/');
-        }
+        if (isKeepAuth) {
+            // Redirect to home if logged in and accessing login pages
+            if ((pathname === '/login/user' || pathname === '/login/organizer' || pathname === '/register/user' || pathname === '/register/organizer') && token && role) {
+                router.push('/');
+                return;
+            }
 
-        // if (isKeepAuth) {
-        //     // Protect dashboard routes if no token is available
-        //     // const isProtectedRoute = !['/login/user', '/login/organizer', '/reset-password'].includes(pathname);
-        //     if (!token) {
-        //         router.push('/'); // Redirect to landing page if unauthenticated
-        //         toast.error('Please Re-login');
-        //     }
-        // }
-    }, [isKeepAuth, pathname]);
+            // Protect specific routes based on token and role
+            if (
+                pathname.includes('/organizer/dashboard') && 
+                (!token || role !== 'organizer')
+            ) {
+                setIsAuthorized(false);
+                toast.error('Access denied: Unauthorized user');
+                // Render an error message page briefly before redirecting
+                setTimeout(() => {
+                    router.push('/');
+                }, 3000);
+            } else {
+                setIsAuthorized(true)
+            }
+        }
+    }, [isKeepAuth, pathname, token, role]);
 
     if (!isKeepAuth) {
         return (
             <main className="flex justify-center">
                 <span className="loading loading-dots loading-lg"></span>
+            </main>
+        );
+    }
+
+
+    if (!isAuthorized) {
+        // Optionally render an error message while waiting for redirect
+        return (
+            <main className="flex justify-center">
+                <p className="text-red-500">Access denied: Redirecting...</p>
             </main>
         );
     }

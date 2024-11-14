@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyToken } from "@/middlewares/verify.token";
 import { uploader } from "@/middlewares/uploader";
-import { createUserProfile, editOrganizerProfile, editUserProfile, findOrganizerProfile, findUserProfile } from "@/controllers/profile.controllers";
+import { createUserProfile, editOrganizerProfile, editUserProfile, findOrganizerProfile, findUserProfile, uploadFileTest } from "@/controllers/profile.controllers";
 import { verifyRole } from "@/middlewares/verify.role";
 
 
@@ -12,5 +12,6 @@ router.get('/', verifyToken, findUserProfile)
 router.patch('/',verifyToken ,uploader, editUserProfile)
 router.get('/organizer',verifyToken,verifyRole, findOrganizerProfile)
 router.patch('/organizer',verifyToken, verifyRole, uploader, editOrganizerProfile)
+router.post('/test',uploader, uploadFileTest)
 
 export default router

@@ -1,11 +1,30 @@
 import { Request, Response, NextFunction } from "express";
 import { createUserProfileService, editUserProfileService, findUserProfileService, findOrganizerProfileService, editOrganizerProfileService } from "@/services/profile.services";
+import { cloudinaryUpload } from "@/utils/cloudinary";
 
 export const createUserProfile = async(req: Request, res: Response, next: NextFunction) => {
     try {
         const uploadedImage = req?.files
 
+        let files
+
         const {usersId, phoneNumber, address} = req.body
+
+        // if(req.files) {
+        //     files = Array.isArray(req.files)
+        //     ? req.files
+        //     : req.files['images']
+
+        //     console.log(req.files)
+
+        //     const imagesUploaded = []
+
+        //     for (const image of files!){
+        //         const result: any = await cloudinaryUpload(image.buffer)
+        //         console.log(result)
+        //         imagesUploaded.push(result.res!)
+        //     }
+        // }
         
         
         await createUserProfileService({uploadedImage, usersId, phoneNumber, address})
@@ -21,6 +40,30 @@ export const createUserProfile = async(req: Request, res: Response, next: NextFu
     } catch (error) {
         console.log(error)
         next(error)
+    }
+}
+
+export const uploadFileTest = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        let files
+
+          if(req.files) {
+            files = Array.isArray(req.files)
+            ? req.files
+            : req.files['images']
+
+            console.log(req.files)
+
+            const imagesUploaded = []
+
+            for (const image of files!){
+                const result: any = await cloudinaryUpload(image.buffer)
+                console.log(result)
+                imagesUploaded.push(result.res!)
+            }
+        }
+    } catch (error) {
+        
     }
 }
 

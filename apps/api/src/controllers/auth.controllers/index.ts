@@ -279,9 +279,13 @@ export const changeUserPassword = async (req: Request, res: Response, next: Next
     try {
         const {usersId, oldPassword, password} = req.body 
 
+
         await changeUserPasswordService({usersId, oldPassword, password})
 
-
+        res.status(200).json({
+            error: false,
+            message: 'Password successfully changed'
+        })
     } catch (error) {
         next(error)
     }
@@ -290,7 +294,7 @@ export const changeUserPassword = async (req: Request, res: Response, next: Next
 export const changeOrganizerPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {usersId, oldPassword, password} = req.body
-
+        
         await changeOrganizerPasswordService({usersId, oldPassword, password})
 
         

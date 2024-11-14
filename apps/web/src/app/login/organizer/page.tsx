@@ -37,7 +37,7 @@ const OrganizerLoginForm: FC = () => {
             email: res?.data?.data?.email
           })
           toast.success(res.data.message)
-          router.push('/dashboard')
+          router.push('/organizer/dashboard')
         },
         onError: (err) => {
           console.log(err)

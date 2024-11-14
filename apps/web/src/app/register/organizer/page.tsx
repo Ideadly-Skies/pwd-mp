@@ -206,7 +206,7 @@ export default function RegisterOrganizerPage() {
             </button>
           </Form>
         )}
-      </Formik>
+      </Formik>   
 
       {/* Link to Log In */}
       <p className="mt-4 text-sm text-gray-600">
