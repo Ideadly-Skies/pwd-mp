@@ -121,7 +121,7 @@ export const editOrganizerProfileService = async({usersId, uploadedImage, firstN
         data: updateData
     })
 
-    if (oldImages && uploadedImage?.images && uploadedImage.images[0]) {
+    if (oldImages !== null && uploadedImage?.images && uploadedImage.images[0]) {
         deleteFiles({
             imagesUploaded: {
                 images: [

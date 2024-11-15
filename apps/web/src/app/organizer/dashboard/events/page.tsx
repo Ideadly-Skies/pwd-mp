@@ -73,7 +73,7 @@ function EventList() {
         <TableBody>
           {data.data.map((event: Event) => (
             <TableRow key={event.id}>
-            <Link href={`/admin/events/${event.id}`} className='hover:text-blue-700 font-bold'>
+            <Link href={`/organizer/dashboard/events/${event.id}`} className='hover:text-blue-700 font-bold'>
               <TableCell className="font-medium">{event.name}</TableCell>       
             </Link>
               <TableCell>{event.type}</TableCell>

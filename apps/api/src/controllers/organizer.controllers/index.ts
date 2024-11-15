@@ -1,4 +1,4 @@
-import { dashboardPageDataService, getEventForOrganizerService } from "@/services/organizer.services";
+import { dashboardPageDataService, getEventForOrganizerService, getEventForOrganizerByIdService } from "@/services/organizer.services";
 import { Request, Response, NextFunction } from "express";
 
 export const getEventForOrganizer = async(req: Request, res: Response, next: NextFunction) => {
@@ -35,9 +35,17 @@ export const dashboardPageData = async(req: Request, res: Response, next: NextFu
 export const getEventForOrganizerById = async(req: Request, res: Response, next: NextFunction) => {
     try {
         const {id} = req.params
+        console.log('req params:',req.params)
         const {usersId} = req.body
+        console.log(req.body)
 
-        await getEventForOrganizerService({usersId, id})
+        const data = await getEventForOrganizerByIdService({usersId, id})
+        console.log('dfata from controller:',data)
+        res.status(200).json({
+            error: false,
+            message: 'Event details retrieved',
+            data: data
+        })
     } catch (error) {
         next(error)
     }

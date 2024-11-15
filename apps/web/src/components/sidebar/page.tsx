@@ -22,9 +22,7 @@ export const AdminSidebar = () => {
   const handleSignOut = () => {
     handleLogOut();
     toast.success('Successfully logged out');
-    setTimeout(() => {
       router.push('/');
-    }, 1000);
   };
 
   return (

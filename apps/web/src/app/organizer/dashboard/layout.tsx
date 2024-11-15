@@ -1,5 +1,6 @@
 import { AdminSidebar } from "@/components/sidebar/page";
 import { ReactNode } from "react";
+import NavbarWrapper from "@/components/navbar/navbarWrapper";
 
 export default function DashboardLayout ({children}: any){
     return(

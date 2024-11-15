@@ -79,7 +79,7 @@ function TransactionList() {
     keepPreviousData: false
   });
   // console.log('Received data:', data);
-  console.log('Fetched data for page:', page, data);
+  console.log('Fetched data for page:',data);
 
   if (isLoading) return <TransactionListSkeleton />;
   if (error) return <p>Error loading transactions</p>;

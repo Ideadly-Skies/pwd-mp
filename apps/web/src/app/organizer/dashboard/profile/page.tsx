@@ -285,7 +285,7 @@ export const OrganizerProfilePage = () => {
                     </ErrorMessage>
                   </div>
   
-                  <div className="mt-8 flex justify-center space-x-2">
+                  <div className="mt-8 flex-row flex justify-center space-x-2">
                     {isEditing ? (
                       <div className="flex justify-end space-x-2">
                         <Button

@@ -12,95 +12,9 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 
-// Mock API response
-const apiResponse = {
-  "error": false,
-  "message": "Events successfully retrieved",
-  "data": [
-    {
-      "id": 12,
-      "name": "food 101",
-      "type": "Conference",
-      "locationName": "",
-      "location": "",
-      "url": "src/public/images/images-1731309279118-951559828.png",
-      "description": "learn about cooking and food",
-      "detailedDescription": "food 101 for everyone",
-      "startDate": "2024-11-15T00:00:00.000Z",
-      "endDate": "2024-11-17T00:00:00.000Z",
-      "isPaid": false,
-      "capacity": 100,
-      "eoId": "7af66f7f-7c46-4443-a1f4-b7e45e6abd83",
-      "categoryId": 1,
-      "tickets": [],
-      "transactions": [],
-      "reviews": []
-    },
-    {
-      "id": 13,
-      "name": "weed 101",
-      "type": "Workshop",
-      "locationName": "",
-      "location": "",
-      "url": "src/public/images/images-1731309463742-831318270.png",
-      "description": "bong 4 everyone",
-      "detailedDescription": "all praise to the jah bomboclat mi pussycat",
-      "startDate": "2024-11-12T00:00:00.000Z",
-      "endDate": "2024-11-13T00:00:00.000Z",
-      "isPaid": false,
-      "capacity": 150,
-      "eoId": "7af66f7f-7c46-4443-a1f4-b7e45e6abd83",
-      "categoryId": 3,
-      "tickets": [],
-      "transactions": [],
-      "reviews": []
-    }
-  ]
-}
-
-const events = apiResponse.data
 
 
 
-// Mock data generator function
-const generateMockData = (range) => {
-  const now = new Date()
-  let data = []
-  if (range === 'day') {
-    for (let i = 0; i < 24; i++) {
-      data.push({
-        time: `${i}:00`,
-        capacity: Math.floor(Math.random() * 100),
-        registrations: Math.floor(Math.random() * 50)
-      })
-    }
-  } else if (range === 'month') {
-    for (let i = 1; i <= 30; i++) {
-      data.push({
-        date: `${now.getMonth() + 1}/${i}`,
-        capacity: Math.floor(Math.random() * 1000),
-        registrations: Math.floor(Math.random() * 500)
-      })
-    }
-  } else { // year
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    for (let i = 0; i < 12; i++) {
-      data.push({
-        month: months[i],
-        capacity: Math.floor(Math.random() * 10000),
-        registrations: Math.floor(Math.random() * 5000)
-      })
-    }
-  }
-  return data
-}
-
-const eventTypeData = events.reduce((acc, event) => {
-  acc[event.type] = (acc[event.type] || 0) + 1
-  return acc
-}, {})
-
-const eventTypeChartData = Object.entries(eventTypeData).map(([name, value]) => ({ name, value }))
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']
 
@@ -108,9 +22,7 @@ export const DashboardPage = () => {
   const [dateRange, setDateRange] = useState('year')
   const [chartData, setChartData] = useState([])
 
-  useEffect(() => {
-    setChartData(generateMockData(dateRange))
-  }, [dateRange])
+ 
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard'],
@@ -119,7 +31,50 @@ export const DashboardPage = () => {
       return response.data.data
     },
   })
+
   console.log(data)
+
+  useEffect(() => {
+    if (data) {
+      // Generate chart data based on fetched data
+      setChartData(generateChartData(data.events, dateRange))
+    }
+  }, [data, dateRange])
+
+  const generateChartData = (events: any, range: any) => {
+    const now = new Date()
+    let data = []
+    if (range === 'day') {
+      for (let i = 0; i < 24; i++) {
+        data.push({
+          time: `${i}:00`,
+          capacity: events.reduce((sum: any, event: any) => sum + Math.floor(Math.random() * 100), 0), // Replace with actual logic if available
+          registrations: events.reduce((sum: any, event: any) => sum + Math.floor(Math.random() * 50), 0) // Replace with actual logic if available
+        })
+      }
+    } else if (range === 'month') {
+      for (let i = 1; i <= 30; i++) {
+        data.push({
+          date: `${now.getMonth() + 1}/${i}`,
+          capacity: events.reduce((sum: any, event: any) => sum + Math.floor(Math.random() * 1000), 0),
+          registrations: events.reduce((sum: any, event: any) => sum + Math.floor(Math.random() * 500), 0)
+        })
+      }
+    } else { // year
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      for (let i = 0; i < 12; i++) {
+        data.push({
+          month: months[i],
+          capacity: events.reduce((sum: any, event: any) => sum + Math.floor(Math.random() * 10000), 0),
+          registrations: events.reduce((sum: any, event: any) => sum + Math.floor(Math.random() * 5000), 0)
+        })
+      }
+    }
+    return data
+  }
+
+
+
   if(isLoading){
     return (
      <Progress value={50} className='items-center justify-center'/>
@@ -209,7 +164,7 @@ export const DashboardPage = () => {
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {eventTypeChartData.map((entry, index) => (
+                    {data.eventTypeChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -266,7 +221,7 @@ export const DashboardPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {events.map((event) => (
+                    {data.events.map((event) => (
                       <TableRow key={event.id}>
                         <TableCell className="font-medium">{event.name}</TableCell>
                         <TableCell>{event.type}</TableCell>
