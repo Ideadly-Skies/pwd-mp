@@ -1,10 +1,70 @@
 import { NextFunction, Request, Response } from "express";
+import { createTransactionService, updateTransactionStatusService } from "@/services/transaction.service";
+
 import prisma from "@/prisma";
 
 // server.js or your backend file
 const midtransClient = require('midtrans-client')
 const midtransServerKey = process.env.MIDTRANS_SERVER_KEY;
-import { createTransactionService, getTransactionListService } from "@/services/transaction.service";
+
+export const updateTransactionStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { orderId, status } = req.body; // Get the order ID and status from the request body
+  
+      if (!orderId || !status) {
+        return res.status(400).json({
+          error: true,
+          message: "Order ID and status are required",
+        });
+      }
+  
+      // Update the transaction status
+      const updatedTransaction = await updateTransactionStatusService(orderId, status);
+  
+      res.status(200).json({
+        error: false,
+        message: "Transaction status updated successfully",
+        data: updatedTransaction,
+      });
+    } catch (error) {
+      console.error("Error updating transaction status:", error);
+  
+      if (error instanceof Error) {
+        res.status(400).json({
+          error: true,
+          message: error.message,
+        });
+      } else {
+        next(error);
+      }
+    }
+};
+
+export const midtransWebhook = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { order_id, transaction_status } = req.body;
+        
+      // Map Midtrans statuses to your system's statuses
+      const statusMapping: Record<string, string> = {
+        settlement: "paid",
+        pending: "pending",
+        deny: "failed",
+        cancel: "cancelled",
+        expire: "expired",
+      };
+  
+      const status = statusMapping[transaction_status] || "unknown";
+  
+      // Update the transaction status
+      await updateTransactionStatusService(order_id, status);
+  
+      res.status(200).json({ error: false, message: "Webhook processed successfully" });
+    } catch (error) {
+      console.error("Error processing webhook:", error);
+      next(error);
+    }
+  };
+
 
 export const createTransaction = async(req: Request, res: Response, next: NextFunction) => {
     try {
@@ -13,7 +73,6 @@ export const createTransaction = async(req: Request, res: Response, next: NextFu
             isProduction: false,
             serverKey: midtransServerKey
         })
-        console.log('snap:',snap)
 
         // grab usersId, eventId, totalPrice from req.body
         let {usersId, eventId, totalPrice} = req.body
@@ -63,6 +122,7 @@ export const createTransaction = async(req: Request, res: Response, next: NextFu
         res.status(201).json({
             error: false, 
             message: `Transaction creation successful!`,
+            orderId: orderId,
             token: transaction.token,
             redirect_url: transaction.redirect_url,
             data: {orderId, totalPrice, usersId, eventId, customerDetails} 
@@ -79,22 +139,5 @@ export const createTransaction = async(req: Request, res: Response, next: NextFu
         } else {
             next(error); 
         }
-    }
-}
-
-export const getTransactionList = async(req: Request, res: Response, next: NextFunction) => {
-    try {
-        const {usersId} = req.body
-        const {page = 1, limit = 8} = req.query
-
-        const transactionList = await getTransactionListService({usersId, page: Number(page), limit: Number(limit)})
-
-        res.status(200).json({
-            error: false,
-            message: 'Transaction retrieved',
-            data: transactionList
-        })
-     } catch (error) {
-        next(error)
     }
 }

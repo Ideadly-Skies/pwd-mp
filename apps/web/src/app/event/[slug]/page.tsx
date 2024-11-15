@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import instance from '@/utils/axiosinstance';
+import ReviewCarousel from '../review/page';
 
 // Function to format date
 function formatDate(dateString: string) {
@@ -31,7 +32,7 @@ export default function EventPage() {
   
   // console.log("from event page",pathname.split('/'))
   // Using `useQueries` to fetch both the specific event by `id` and all events
-  const [eventQuery, allEventsQuery] = useQueries({
+  const [eventQuery, allEventsQuery, reviewsQuery] = useQueries({
     queries: [
       {
         queryKey: ['event', id], // Unique key for the single event query
@@ -50,13 +51,21 @@ export default function EventPage() {
           return res.data.data;
         },
       },
+      {
+        queryKey: ['reviews'],
+        queryFn: async () => {
+          const res = await axios.get(`http://localhost:4700/api/review/${id}`); // Adjust API URL
+          return res.data.data; // Assuming data contains the reviews array
+        },
+      }
     ],
   });
   
   let event = eventQuery.data
-  
   let allEvents = allEventsQuery.data
-  // console.log("all events", allEvents)
+  
+  let reviews = reviewsQuery.data
+  console.log(reviewsQuery)
   
   // Filter out the current event from all events
   const otherEvents = allEvents?.filter((e: any) => e.id !== Number(id));
@@ -118,15 +127,66 @@ export default function EventPage() {
     if (regularTicketCount > 0) {    
       const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
 
-      console.log(midtransClientKey)
-
       try {
         await loadSnapScript(midtransClientKey as string)
 
-        mutateCreateTransaction({
+        const transactionData = {
           eventId: id,
-          totalPrice: Math.round(event.price * regularTicketCount),
-        }); 
+          totalPrice: Math.round(event.price * regularTicketCount)
+        }
+
+        // create the transaction and retrieve the transaction token and redirect URL
+        const {data} = await instance.post("/transaction/create-transaction", transactionData)
+        const {token, redirect_url, orderId} = data;
+        console.log("data", data);
+        
+        // window snap to display the midtrans
+        if (window.snap) {
+          window.snap.pay(token, {
+            onSuccess: async function (result) {
+              alert("Payment successful!");
+  
+              // Post paid transaction to the backend
+              await instance.post("/transaction/update-transaction-status", {
+                orderId: result.order_id,
+                status: "paid",
+              });
+  
+              console.log("Payment success:", result);
+            },
+            onPending: async function (result) {
+                // Post pending transaction to the backend
+                await instance.post("/transaction/update-transaction-status", {
+                  orderId: result.order_id,
+                  status: "pending",
+                });            
+
+              alert("Waiting for your payment!");
+              console.log("Payment pending:", result);
+            },
+            onError: async function (result) {
+              // Post paid transaction to the backend
+              await instance.post("/transaction/update-transaction-status", {
+                orderId: result.order_id,
+                status: "failed",
+              }); 
+              alert("Payment failed!");
+              console.error("Payment failed:", result);
+            },
+            onClose: async function () { 
+              alert("You closed the popup without finishing the payment.");
+              
+              // Post pending transaction to the backend
+              await instance.post("/transaction/update-transaction-status", {
+                orderId: orderId,
+                status: "failed",
+              }); 
+            },
+          });
+        } else {
+          console.warn("Snap is not available. Redirecting to the payment page...");
+          window.location.href = redirect_url; // Redirect to Midtrans payment page
+        }         
       } catch (error) {
         console.error(error)
         toast.error("Payment system is not ready. Please try again.", { position: "top-center" });
@@ -136,52 +196,6 @@ export default function EventPage() {
       scrollToTickets(); // Scroll to tickets section if no tickets are selected
     } 
   }
-
-  // Define the mutation
-  const { mutate: mutateCreateTransaction } = useMutation({
-    mutationFn: async (data: { eventId: string; totalPrice: number }) => {
-      // Send request to create transaction
-      return await instance.post('/transaction/create-transaction', data);
-    },
-
-    onSuccess: (res) => {
-      console.log(res.data)
-      const transactionToken = res.data.token; // Extract transaction token from response
-      const redirectUrl = res.data.redirect_url; // Extract redirect URL from response
-
-      console.log(transactionToken)
-      console.log(redirectUrl)
-
-      // Handle payment using Snap popup or redirect URL
-      if (window.snap) {
-        window.snap.pay(transactionToken, {
-          onSuccess: function (result) {
-            alert("Payment successful!");
-            console.log("Payment success:", result);
-          },
-          onPending: function (result) {
-            alert("Waiting for your payment!");
-            console.log("Payment pending:", result);
-          },
-          onError: function (result) {
-            alert("Payment failed!");
-            console.error("Payment failed:", result);
-          },
-          onClose: function () {
-            alert("You closed the popup without finishing the payment.");
-          },
-        });
-      } else {
-        console.warn("Snap is not available. Redirecting to the payment page...");
-        // window.location.href = redirectUrl 
-      }
-    },
-  
-    onError: (error) => {
-      console.error("Transaction creation failed:", error);
-      toast.error("Transaction creation failed", { position: "top-center" });
-    },
-  });
 
   // if there are no event being fetched
   if (!event) {
@@ -296,22 +310,8 @@ export default function EventPage() {
             </div>
           </section>
 
-          {/* Organized By Section */}
-          <section className="bg-white rounded-lg shadow-lg p-8 mt-8">
-            <h2 className="text-2xl font-semibold text-gray-800">Organized by</h2>
-            <div className="flex items-center justify-between mt-4 p-4 bg-gray-50 rounded-lg shadow-inner">
-              <div>
-                <p className="text-gray-800 font-semibold">KT&G SangSang Univ. Indonesia</p>
-                <p className="text-gray-500">449 followers</p>
-                <p className="text-gray-500">5.6k attendees hosted</p>
-              </div>
-              <div className="flex space-x-4">
-                <button className="text-blue-500 font-semibold">Contact</button>
-                <button className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600">Follow</button>
-              </div>
-            </div>
-            <p className="text-blue-500 mt-4 cursor-pointer">Report this event</p>
-          </section>
+          {/* Review Carousel Section */}
+          <ReviewCarousel reviews={reviews}/>
         </div>
         
         {/* Right side (Persistent Select Tickets Button) - 1/4 width */}
