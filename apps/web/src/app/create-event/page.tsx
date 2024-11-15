@@ -18,28 +18,28 @@ export default function CreateEventPage() {
     const role = authStore((state) => state.role)
     const token = authStore((state) => state.token)
 
-    if(role !== 'organizer' || !token){
-        setTimeout(() => {
-            router.push('/')
-        },3000) 
-        toast.error('Please login as organizer')
-        return(
-            <main className='w-full h-screen pt-72'>
-                <div className='text-center items-center justify-center'>
-                    <h1 className='text-3xl font-bold text-center items-center justify-center pb-10'>
-                        Oopsie, Please log in as Organizer to proceed
-                    </h1>
-                    <button className='bg-orange-500 rounded-lg items-center justify-center'>
-                        <Link href='/'>
-                        <span className='px-5 py-5 text-lg font-bold'>
-                            go back to Homepage
-                        </span>     
-                        </Link>
-                    </button>
-                </div>
-            </main>
-        )     
-    }
+    // if(role !== 'organizer' || !token){
+    //     setTimeout(() => {
+    //         router.push('/')
+    //     },3000) 
+    //     toast.error('Please login as organizer')
+    //     return(
+    //         <main className='w-full h-screen pt-72'>
+    //             <div className='text-center items-center justify-center'>
+    //                 <h1 className='text-3xl font-bold text-center items-center justify-center pb-10'>
+    //                     Oopsie, Please log in as Organizer to proceed
+    //                 </h1>
+    //                 <button className='bg-orange-500 rounded-lg items-center justify-center'>
+    //                     <Link href='/'>
+    //                     <span className='px-5 py-5 text-lg font-bold'>
+    //                         go back to Homepage
+    //                     </span>     
+    //                     </Link>
+    //                 </button>
+    //             </div>
+    //         </main>
+    //     )     
+    // }
     
     const EventTypeButtons = () => {
         const { values, setFieldValue } = useFormikContext<any>();

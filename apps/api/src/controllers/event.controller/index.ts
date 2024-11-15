@@ -71,7 +71,7 @@ export const createEvent = async(req: Request, res: Response, next: NextFunction
         category = category.toLowerCase()
 
         // Assuming you're using Multer and `mainImage` is the key for the uploaded file(s)
-        const mainImageFile = (req.files as { [fieldname: string]: Express.Multer.File[] }).mainImage?.[0];
+        const mainImageFile = (req.files as { [fieldname: string]: Express.Multer.File[] }).images?.[0];
         let url = ''
 
         if (mainImageFile) {

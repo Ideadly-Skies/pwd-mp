@@ -13,7 +13,7 @@ export const createEventService = async({name, type, category, location, locatio
         throw new Error(`Category "${category}" not found.`);
     } 
     
-    console.log(categoryRecord);
+    console.log('categoryRecord:',categoryRecord);
     
     // create new event service
     await prisma.event.create({

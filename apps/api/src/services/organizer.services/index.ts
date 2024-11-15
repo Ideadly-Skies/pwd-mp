@@ -40,7 +40,6 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
               profilePictureUrl: true,
             },
           },
-          status: true, // Assuming status is needed in the result
         },
       },
       tickets: true,
@@ -96,13 +95,14 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
     },
   }));
 
+  // Adding status directly inside transaction mapping
   const transactionsWithUserInfo = event.transactions.map((transaction) => ({
     ...transaction,
     user: {
       name: `${transaction.user.firstName} ${transaction.user.lastName}`,
       profilePictureUrl: transaction.user.profilePictureUrl,
     },
-    status: transaction.status[0].status,
+    status: transaction.status, // Directly include the status field
   }));
 
   console.log(transactionsWithUserInfo)
@@ -126,17 +126,15 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
     include: {
       tickets: true,
       transactions: {
+        where: {
+          status: 'COMPLETED', // Filter transactions by status
+        },
         include: {
           user: {
             select: {
               firstName: true,
               lastName: true,
               profilePictureUrl: true,
-            },
-          },
-          status: {
-            where: {
-              status: 'COMPLETED',
             },
           },
         },
@@ -187,9 +185,6 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
 
   const recentTransactions = events
     .flatMap((event) => event.transactions)
-    .filter((transaction) =>
-      transaction.status.some((status) => status.status === 'COMPLETED'),
-    )
     .sort((a: any, b: any) => b.id - a.id)
     .slice(0, 10)
     .map(({ id, user, totalPrice }) => ({
@@ -202,7 +197,7 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
 
   const totalRevenue = events.reduce((sum, event) => {
     const completedTransaction = event.transactions.filter((transaction) =>
-      transaction.status.some((status) => status.status === 'COMPLETED'),
+      transaction.status === 'COMPLETED', // Filter the completed transactions directly
     );
     const totalEventRevenue = completedTransaction.reduce(
       (eventSum, transaction) => eventSum + transaction.totalPrice,
@@ -210,14 +205,6 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
     );
     return sum + totalEventRevenue;
   }, 0);
-
-  // console.log('events:', events);
-  // console.log('eventTypeChartData:', eventTypeChartData);
-  // console.log('totalEvents:', totalEvents);
-  // console.log('totalCapacity:', totalCapacity);
-  // console.log('paidEvents:', paidEvents);
-  // console.log('recentTransactions:', recentTransactions);
-  // console.log('totalRevenue', totalRevenue);
 
   return {
     events,
