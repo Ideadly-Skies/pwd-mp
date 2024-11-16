@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { createTransactionService, updateTransactionStatusService } from "@/services/transaction.service";
+import { createTransactionService, getTransactionListService, updateTransactionStatusService } from "@/services/transaction.service";
 
 import prisma from "@/prisma";
 
@@ -148,6 +148,8 @@ export const getTransactionList = async(req: Request, res: Response, next: NextF
         const {page = 1, limit = 8} = req.query
 
         const transactionList = await getTransactionListService({usersId, page: Number(page), limit: Number(limit)})
+
+        console.log(transactionList)
         
 
         res.status(200).json({

@@ -127,7 +127,7 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
       tickets: true,
       transactions: {
         where: {
-          status: 'COMPLETED', // Filter transactions by status
+          status: 'paid', // Filter transactions by status
         },
         include: {
           user: {
@@ -197,7 +197,7 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
 
   const totalRevenue = events.reduce((sum, event) => {
     const completedTransaction = event.transactions.filter((transaction) =>
-      transaction.status === 'COMPLETED', // Filter the completed transactions directly
+      transaction.status === 'paid', // Filter the completed transactions directly
     );
     const totalEventRevenue = completedTransaction.reduce(
       (eventSum, transaction) => eventSum + transaction.totalPrice,

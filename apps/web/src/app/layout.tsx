@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import NavbarWrapper from "@/components/navbar/navbarWrapper";
+import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import Footer from "@/components/footer/page";
 import ReactQueryProvider from "@/providers/TanstackProvider";
 import AuthProvider from "@/providers/AuthProvider";
@@ -34,12 +34,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        < ReactQueryProvider>
-         < AuthProvider> 
-          <NavbarWrapper />
+        <ReactQueryProvider>
+          <AuthProvider> 
+            <NavbarWrapper>
+              {children} {/* Moved inside NavbarWrapper */}
+            </NavbarWrapper>
             <ToastContainer />
-             {children}
-            <Footer/>
+            <Footer />
           </AuthProvider>  
         </ReactQueryProvider>
       </body>
