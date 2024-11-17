@@ -4,9 +4,6 @@ import instance from '@/utils/axiosinstance';
 import { useMutation, UseQueryResult } from "@tanstack/react-query";
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
-import { errorHandler } from '@/utils/errorHandler';
-import authStore from '@/zustand/authStore';
-import Link from 'next/link';
 
 // Formik
 import { Formik, Field, Form, ErrorMessage, useFormikContext } from 'formik';
@@ -15,32 +12,7 @@ import * as Yup from 'yup';
 // create event page
 export default function CreateEventPage() {
     const router = useRouter();
-    const role = authStore((state) => state.role)
-    const token = authStore((state) => state.token)
 
-    // if(role !== 'organizer' || !token){
-    //     setTimeout(() => {
-    //         router.push('/')
-    //     },3000) 
-    //     toast.error('Please login as organizer')
-    //     return(
-    //         <main className='w-full h-screen pt-72'>
-    //             <div className='text-center items-center justify-center'>
-    //                 <h1 className='text-3xl font-bold text-center items-center justify-center pb-10'>
-    //                     Oopsie, Please log in as Organizer to proceed
-    //                 </h1>
-    //                 <button className='bg-orange-500 rounded-lg items-center justify-center'>
-    //                     <Link href='/'>
-    //                     <span className='px-5 py-5 text-lg font-bold'>
-    //                         go back to Homepage
-    //                     </span>     
-    //                     </Link>
-    //                 </button>
-    //             </div>
-    //         </main>
-    //     )     
-    // }
-    
     const EventTypeButtons = () => {
         const { values, setFieldValue } = useFormikContext<any>();
         return (
@@ -92,10 +64,13 @@ export default function CreateEventPage() {
 
     // state to hold form values and initialize Formik for page 2
     const initialValues2 = {
-        images: null,
+        mainImage: null,
         mainImageUrl: '',
         summary: '',
-        detailedDescription: ''
+        detailedDescription: '',
+        enableReferralDiscount: false,
+        referralCode: '',
+        discountPercentage: 0
     }
 
     // first page
@@ -107,7 +82,11 @@ export default function CreateEventPage() {
         name: Yup.string().required('Event name is required').max(75, 'event name cannot exceed 75 characters'),
         type: Yup.string().required('Please select an event type'),
         category: Yup.string().required('Please select a category'),
-        eventPrice: Yup.number().required('Price is required').min(0, 'Price cannot be negative'),
+        eventPrice: Yup.string().required('Event price is required').test(
+            'is-decimal',
+            'Price must be a decimal number with a dot (e.g., 10.50)',
+            value => /^[0-9]+(\.[0-9]{1,2})?$/.test(value) // Regex to check for decimal format with dot
+        ), 
         capacity: Yup.number().required('Capacity is required').min(1, 'Capacity must be at least 1'),
         tags: Yup.array()
             .of(Yup.string())
@@ -145,6 +124,13 @@ export default function CreateEventPage() {
         displayEndTime: Yup.boolean(),
         timeZone: Yup.string().required('Please select a time zone'),
         eventPageLanguage: Yup.string().required('Please select an event page language'),
+        // summary: Yup.string()
+        //     .required("Summary is required")
+        //     .max(500, "Summary cannot exceed 500 characters"),
+        // detailedDescription: Yup.string()
+        //     .max(100000, "Detailed description cannot exceed 100,000 characters")
+        //     .nullable(), // Make this optional
+        // emailContent: Yup.string().required("Email content is required"),
     });
 
     // mutateCreateEvent
@@ -154,13 +140,17 @@ export default function CreateEventPage() {
         },
 
         onSuccess: (res) => {
-            toast.success(res.data.message)
+            toast.success("Create event success", {
+                position: "top-center"
+            })
             router.push('/');
             console.log(res);
         },
 
         onError: (err) => {
-            errorHandler(err)
+            toast.error("create event failed", {
+                position: "top-center"
+            })
             console.log(err);
         }
     })
@@ -273,28 +263,25 @@ export default function CreateEventPage() {
                                     {/* Event Price and Capacity */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                         <div>
-                                            <label className="block text-gray-700 text-sm font-semibold mb-2">Event Price ($)</label>
+                                            <label className="block text-gray-700 text-sm font-semibold mb-2">Event Price (Rp)</label>
                                             <Field
-                                                name="eventPrice"
-                                                type="number"
-                                                min={0}
-                                                placeholder="Enter price"
-                                                // value={price}
-                                                // onChange={(e: any) => setEventPrice(e.target.value)}
-                                                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"
+                                            name="eventPrice"
+                                            type="number"
+                                            min="0"
+                                            step="0.01" // Allows inputting decimal values
+                                            placeholder="Enter price"
+                                            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"
                                             />
                                             <ErrorMessage name="eventPrice" component="p" className="text-red-500 text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-gray-700 text-sm font-semibold mb-2">Capacity</label>
                                             <Field
-                                                name="capacity"
-                                                type="number"
-                                                min={1}
-                                                placeholder="Enter capacity"
-                                                // value={capacity}
-                                                // onChange={(e: any) => setCapacity(e.target.value)}
-                                                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"
+                                            name="capacity"
+                                            type="number"
+                                            min="1"
+                                            placeholder="Enter capacity"
+                                            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"
                                             />
                                             <ErrorMessage name="capacity" component="p" className="text-red-500 text-sm" />
                                         </div>
@@ -441,18 +428,6 @@ export default function CreateEventPage() {
                                                 </div>
                                             </div>
 
-                                            {/* Display Time Checkboxes */}
-                                            {/* <div className="flex items-center space-x-4 mb-6">
-                                                <label className="flex items-center text-gray-700">
-                                                    <Field type="checkbox" name="displayStartTime" className="mr-2" />
-                                                    Display start time
-                                                </label>
-                                                <label className="flex items-center text-gray-700">
-                                                    <Field type="checkbox" name="displayEndTime" className="mr-2" />
-                                                    Display end time
-                                                </label>
-                                            </div> */}
-
                                             {/* Time Zone Selection */}
                                             <div className="mb-4">
                                                 <label className="block text-gray-700 font-medium mb-2">Time Zone</label>
@@ -520,10 +495,9 @@ export default function CreateEventPage() {
                             ...values,      // New values from the current form
                         };
 
-                        console.log(allValues);
-
                         // Update the formValues state with the merged data
                         setFormValues(allValues);
+                        console.log(allValues)
 
                         // Create a new FormData object
                         const formData = new FormData();
@@ -587,7 +561,7 @@ export default function CreateEventPage() {
                                                         const file = e.target.files[0];
                                                         if (file) {
                                                             setFieldValue('mainImageUrl', URL.createObjectURL(file));
-                                                            setFieldValue('images', file);  // Store the file for FormData
+                                                            setFieldValue('mainImage', file);  // Store the file for FormData
                                                         }
                                                     }}
                                                 />
@@ -631,6 +605,46 @@ export default function CreateEventPage() {
                                                 rows={6}
                                             />
                                             <ErrorMessage name="detailedDescription" component="p" className="text-red-500 text-sm" />
+                                        </div>
+
+                                        {/* Referral Code Discount */}
+                                        <div className="mb-6">
+                                            <label htmlFor="enableReferralDiscount" className="block text-sm font-semibold text-gray-700">
+                                                Enable Referral Code Discount
+                                            </label>
+                                            <Field
+                                                type="checkbox"
+                                                name="enableReferralDiscount"
+                                                className="mr-2"
+                                                onChange={(e: any) => setFieldValue("enableReferralDiscount", e.target.checked)}
+                                            />
+
+                                            {/* Conditionally render referral code and discount percentage fields */}
+                                            {values.enableReferralDiscount && (
+                                                <>
+                                                    <label htmlFor="referralCode" className="block text-sm font-semibold text-gray-700 mt-4">
+                                                        Referral Code
+                                                    </label>
+                                                    <Field
+                                                        type="text"
+                                                        name="referralCode"
+                                                        className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"
+                                                        placeholder="Enter referral code"
+                                                    />
+                                                    <ErrorMessage name="referralCode" component="p" className="text-red-500 text-sm" />
+                                                    
+                                                    <label htmlFor="discountPercentage" className="block text-sm font-semibold text-gray-700 mt-4">
+                                                        Discount Percentage
+                                                    </label>
+                                                    <Field
+                                                        type="number"
+                                                        name="discountPercentage"
+                                                        className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"
+                                                        placeholder="Enter discount percentage"
+                                                    />
+                                                    <ErrorMessage name="discountPercentage" component="p" className="text-red-500 text-sm" />
+                                                </>
+                                            )}
                                         </div>
         
                                         {/* Action Buttons */}

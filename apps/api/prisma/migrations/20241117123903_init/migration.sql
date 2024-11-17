@@ -69,9 +69,6 @@ CREATE TABLE "events" (
     "detailedDescription" TEXT,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
-    "isPaid" BOOLEAN NOT NULL,
-    "price" DOUBLE PRECISION NOT NULL,
-    "capacity" INTEGER NOT NULL,
     "eoId" TEXT NOT NULL,
     "categoryId" INTEGER NOT NULL,
 
@@ -92,10 +89,6 @@ CREATE TABLE "eventtickets" (
     "name" TEXT NOT NULL,
     "price" INTEGER NOT NULL,
     "available" INTEGER NOT NULL,
-    "bookSeat" INTEGER NOT NULL,
-    "discount" INTEGER NOT NULL,
-    "discountStart" TIMESTAMP(3) NOT NULL,
-    "discountExpiry" TIMESTAMP(3) NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
     "eventId" INTEGER NOT NULL,
@@ -126,7 +119,7 @@ CREATE TABLE "transactions" (
     "eventId" INTEGER NOT NULL,
     "totalPrice" INTEGER NOT NULL,
     "userId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" TEXT NOT NULL DEFAULT 'pending',
 
     CONSTRAINT "transactions_pkey" PRIMARY KEY ("id")
 );
@@ -135,21 +128,12 @@ CREATE TABLE "transactions" (
 CREATE TABLE "transactiondetails" (
     "id" TEXT NOT NULL,
     "transactionId" TEXT NOT NULL,
-    "ticketId" INTEGER NOT NULL,
-    "price" INTEGER NOT NULL,
-    "qty" INTEGER NOT NULL,
+    "regularTicketQty" INTEGER,
+    "regularTicketPrice" INTEGER,
+    "vipTicketQty" INTEGER,
+    "vipTicketPrice" INTEGER,
 
     CONSTRAINT "transactiondetails_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "transactionstatus" (
-    "id" TEXT NOT NULL,
-    "status" TEXT NOT NULL,
-    "transactionId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "transactionstatus_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -161,6 +145,29 @@ CREATE TABLE "reviews" (
     "feedback" TEXT NOT NULL,
 
     CONSTRAINT "reviews_pkey" PRIMARY KEY ("userId","eventId")
+);
+
+-- CreateTable
+CREATE TABLE "messages" (
+    "id" TEXT NOT NULL,
+    "subject" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "sender" TEXT NOT NULL,
+    "receiver" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "event_referral_code" (
+    "id" SERIAL NOT NULL,
+    "eventId" INTEGER NOT NULL,
+    "referralCode" TEXT NOT NULL,
+    "discountPercentage" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "event_referral_code_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -180,6 +187,9 @@ CREATE UNIQUE INDEX "eventorganizer_email_key" ON "eventorganizer"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "event_referral_code_eventId_key" ON "event_referral_code"("eventId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_EventTags_AB_unique" ON "_EventTags"("A", "B");
@@ -215,16 +225,13 @@ ALTER TABLE "transactions" ADD CONSTRAINT "transactions_userId_fkey" FOREIGN KEY
 ALTER TABLE "transactiondetails" ADD CONSTRAINT "transactiondetails_transactionId_fkey" FOREIGN KEY ("transactionId") REFERENCES "transactions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "transactiondetails" ADD CONSTRAINT "transactiondetails_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "eventtickets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "transactionstatus" ADD CONSTRAINT "transactionstatus_transactionId_fkey" FOREIGN KEY ("transactionId") REFERENCES "transactions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "reviews" ADD CONSTRAINT "reviews_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "reviews" ADD CONSTRAINT "reviews_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "event_referral_code" ADD CONSTRAINT "event_referral_code_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_EventTags" ADD CONSTRAINT "_EventTags_A_fkey" FOREIGN KEY ("A") REFERENCES "events"("id") ON DELETE CASCADE ON UPDATE CASCADE;

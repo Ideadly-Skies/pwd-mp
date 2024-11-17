@@ -5,6 +5,8 @@ import eventRouter from "./event.routers";
 import organizerRouters from './organizer.routers/index'
 import transactionRouter from "./transaction.routers/index";
 import reviewRouter from "./review.routers";
+import ticketRouter from "./ticket.routers";
+import emailRouter from "./mail.routers";
 
 const router = Router()
 router.use('*/images', express.static('src/public/images'))
@@ -14,5 +16,7 @@ router.use('/api/event', eventRouter);
 router.use('/api/organizer', organizerRouters)
 router.use('/api/transaction', transactionRouter)
 router.use('/api/review', reviewRouter);
+router.use('/api/ticket',ticketRouter)
+router.use('/api/email', emailRouter)
 
 export default router;

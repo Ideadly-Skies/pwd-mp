@@ -136,15 +136,7 @@ export const createReview = async (req: Request, res: Response, next: NextFuncti
         });
       } else {
         // Create a new review
-        const newReview = await prisma.review.create({
-          data: {
-            userId: usersId,
-            eventId,
-            comments,
-            rating,
-            feedback,
-          },
-        });
+        const newReview = await createReviewService({ usersId, eventId, comments, rating, feedback }) 
   
         return res.status(201).json({
           error: false,

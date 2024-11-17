@@ -180,6 +180,14 @@ function Navbar() {
                     </Link>
                     <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                   </DropdownMenuItem>
+                  {/* dropdown menu for inbox */}
+                  <DropdownMenuItem>
+                    <Mail />
+                    <Link href="/user/inbox">
+                      <span>Inbox</span>
+                    </Link>
+                    <DropdownMenuShortcut>⇧⌘I</DropdownMenuShortcut>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>
                     <CreditCard />
                     <span>Billing</span>

@@ -73,11 +73,11 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
     (acc, ticket) => acc + ticket.available,
     0,
   );
-  const totalBookedSeats = event.tickets.reduce(
-    (acc, ticket) => acc + ticket.bookSeat,
-    0,
-  );
-  const remainingSeats = totalCapacity - totalBookedSeats;
+  // const totalBookedSeats = event.tickets.reduce(
+  //   (acc, ticket) => acc + ticket.bookSeat,
+  //   0,
+  // );
+  // const remainingSeats = totalCapacity - totalBookedSeats;
 
   const averageRating =
     event.reviews.length > 0
@@ -96,7 +96,7 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
   }));
 
   // Adding status directly inside transaction mapping
-  const transactionsWithUserInfo = event.transactions.map((transaction) => ({
+  const transactionsWithUserInfo = event.transactions.map((transaction: any) => ({
     ...transaction,
     user: {
       name: `${transaction.user.firstName} ${transaction.user.lastName}`,
@@ -111,7 +111,7 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
     event,
     totalRevenue,
     totalCapacity,
-    remainingSeats,
+    // remainingSeats,
     averageRating,
     reviews: reviewsWithReviewerInfo,
     transactions: transactionsWithUserInfo,
@@ -127,7 +127,9 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
       tickets: true,
       transactions: {
         where: {
-          status: 'paid', // Filter transactions by status
+          status: {
+            equals: 'paid', 
+          },
         },
         include: {
           user: {
@@ -179,40 +181,40 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
     }),
   );
 
-  const totalEvents = events.length;
-  const totalCapacity = events.reduce((sum, event) => sum + event.capacity, 0);
-  const paidEvents = events.filter((event) => event.isPaid).length;
+  // const totalEvents = events.length;
+  // const totalCapacity = events.reduce((sum, event) => sum + event.capacity, 0);
+  // const paidEvents = events.filter((event) => event.isPaid).length;
 
-  const recentTransactions = events
-    .flatMap((event) => event.transactions)
-    .sort((a: any, b: any) => b.id - a.id)
-    .slice(0, 10)
-    .map(({ id, user, totalPrice }) => ({
-      id,
-      userName: `${user.firstName} ${user.lastName}`,
-      amount: totalPrice,
-      profilePictureUrl:
-        user.profilePictureUrl || '/placeholder.svg?height=40&width=40',
-    }));
+  // const recentTransactions = events
+  //   .flatMap((event: any) => event.transactions)
+  //   .sort((a: any, b: any) => b.id - a.id)
+  //   .slice(0, 10)
+  //   .map(({ id, user, totalPrice }) => ({
+  //     id,
+  //     userName: `${user.firstName} ${user.lastName}`,
+  //     amount: totalPrice,
+  //     profilePictureUrl:
+  //       user.profilePictureUrl || '/placeholder.svg?height=40&width=40',
+  //   }));
 
-  const totalRevenue = events.reduce((sum, event) => {
-    const completedTransaction = event.transactions.filter((transaction) =>
-      transaction.status === 'paid', // Filter the completed transactions directly
-    );
-    const totalEventRevenue = completedTransaction.reduce(
-      (eventSum, transaction) => eventSum + transaction.totalPrice,
-      0,
-    );
-    return sum + totalEventRevenue;
-  }, 0);
+  // const totalRevenue = events.reduce((sum: any, event: any) => {
+  //   const completedTransaction = event.transactions.filter((transaction: any) =>
+  //     transaction.status === 'paid', // Filter the completed transactions directly
+  //   );
+  //   const totalEventRevenue = completedTransaction.reduce(
+  //     (eventSum: any, transaction: any) => eventSum + transaction.totalPrice,
+  //     0,
+  //   );
+  //   return sum + totalEventRevenue;
+  // }, 0);
 
-  return {
-    events,
-    eventTypeChartData,
-    totalEvents,
-    totalCapacity,
-    paidEvents,
-    recentTransactions,
-    totalRevenue,
-  };
+  // return {
+  //   events,
+  //   eventTypeChartData,
+  //   totalEvents,
+  //   totalCapacity,
+  //   paidEvents,
+  //   recentTransactions,
+  //   totalRevenue,
+  // };
 };
