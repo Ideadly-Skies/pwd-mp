@@ -322,4 +322,6 @@ export const DashboardPage = () => {
     </div>
   )
 }
+
+//db page
 export default DashboardPage
