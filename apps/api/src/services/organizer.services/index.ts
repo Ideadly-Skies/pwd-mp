@@ -128,7 +128,7 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
       transactions: {
         where: {
           status: {
-            equals: 'paid', 
+            equals: 'paid',
           },
         },
         include: {
@@ -139,11 +139,12 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
               profilePictureUrl: true,
             },
           },
+          details: true,
         },
         orderBy: {
           id: 'desc',
         },
-        take: 10, // Limit to the 10 most recent transactions
+        take: 10,
       },
       reviews: {
         include: {
@@ -166,6 +167,7 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
     },
   });
 
+  // Calculate event type data for chart
   const eventTypeData = events.reduce<{ [key: string]: number }>(
     (acc, event) => {
       acc[event.type] = (acc[event.type] || 0) + 1;
@@ -181,40 +183,82 @@ export const dashboardPageDataService = async ({ usersId }: any) => {
     }),
   );
 
-  // const totalEvents = events.length;
-  // const totalCapacity = events.reduce((sum, event) => sum + event.capacity, 0);
-  // const paidEvents = events.filter((event) => event.isPaid).length;
+  const totalEvents = events.length;
+  
+  // Calculate total capacity from all tickets
+  const totalCapacity = events.reduce((sum, event) => {
+    return sum + event.tickets.reduce((acc, ticket) => acc + ticket.available, 0);
+  }, 0);
 
-  // const recentTransactions = events
-  //   .flatMap((event: any) => event.transactions)
-  //   .sort((a: any, b: any) => b.id - a.id)
-  //   .slice(0, 10)
-  //   .map(({ id, user, totalPrice }) => ({
-  //     id,
-  //     userName: `${user.firstName} ${user.lastName}`,
-  //     amount: totalPrice,
-  //     profilePictureUrl:
-  //       user.profilePictureUrl || '/placeholder.svg?height=40&width=40',
-  //   }));
+  // Consider an event paid if it has any tickets with price > 0
+  const paidEvents = events.filter((event) => 
+    event.tickets.some(ticket => ticket.price > 0)
+  ).length;
 
-  // const totalRevenue = events.reduce((sum: any, event: any) => {
-  //   const completedTransaction = event.transactions.filter((transaction: any) =>
-  //     transaction.status === 'paid', // Filter the completed transactions directly
-  //   );
-  //   const totalEventRevenue = completedTransaction.reduce(
-  //     (eventSum: any, transaction: any) => eventSum + transaction.totalPrice,
-  //     0,
-  //   );
-  //   return sum + totalEventRevenue;
-  // }, 0);
+  const recentTransactions = events
+    .flatMap((event) => event.transactions)
+    .sort((a, b) => (b.id > a.id ? 1 : -1))
+    .slice(0, 10)
+    .map(({ id, user, totalPrice }) => ({
+      id,
+      userName: `${user.firstName} ${user.lastName}`,
+      amount: totalPrice,
+      profilePictureUrl:
+        user.profilePictureUrl || '/placeholder.svg?height=40&width=40',
+    }));
 
-  // return {
-  //   events,
-  //   eventTypeChartData,
-  //   totalEvents,
-  //   totalCapacity,
-  //   paidEvents,
-  //   recentTransactions,
-  //   totalRevenue,
-  // };
+  const totalRevenue = events.reduce((sum, event) => {
+    const completedTransactions = event.transactions.filter(
+      (transaction) => transaction.status === 'paid',
+    );
+    const totalEventRevenue = completedTransactions.reduce(
+      (eventSum, transaction) => eventSum + transaction.totalPrice,
+      0,
+    );
+    return sum + totalEventRevenue;
+  }, 0);
+
+  // Sorting revenue by date, month, and year
+  const sortedRevenueByDate: Record<string, number> = {};
+  const sortedRevenueByMonth: Record<string, number> = {};
+  const sortedRevenueByYear: Record<string, number> = {};
+  
+
+  events.forEach(event => {
+    event.transactions.forEach(transaction => {
+      if (transaction.status === 'paid') {
+        const date = new Date(transaction.createdAt); // Assuming `createdAt` is present
+        const dateKey = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`; // Format: YYYY-MM
+        const yearKey = `${date.getFullYear()}`; // Format: YYYY
+
+        // Revenue per date
+        sortedRevenueByDate[dateKey] = (sortedRevenueByDate[dateKey] || 0) + transaction.totalPrice;
+
+        // Revenue per month
+        sortedRevenueByMonth[monthKey] = (sortedRevenueByMonth[monthKey] || 0) + transaction.totalPrice;
+
+        // Revenue per year
+        sortedRevenueByYear[yearKey] = (sortedRevenueByYear[yearKey] || 0) + transaction.totalPrice;
+      }
+    });
+  });
+
+  // Convert the sorted objects to arrays for charting
+  const revenueByDate = Object.entries(sortedRevenueByDate).map(([date, total]) => ({ date, total }));
+  const revenueByMonth = Object.entries(sortedRevenueByMonth).map(([month, total]) => ({ month, total }));
+  const revenueByYear = Object.entries(sortedRevenueByYear).map(([year, total]) => ({ year, total }));
+
+  return {
+    events,
+    eventTypeChartData,
+    totalEvents,
+    totalCapacity,
+    paidEvents,
+    recentTransactions,
+    totalRevenue,
+    revenueByDate,
+    revenueByMonth,
+    revenueByYear,
+  };
 };
