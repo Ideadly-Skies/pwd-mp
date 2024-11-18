@@ -29,6 +29,13 @@ export default function EventPage() {
   const pathname = usePathname()
   const id = pathname.split('/')[2]
   
+  // usestate variables for referral modal
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(true);
+  const [referralCode, setReferralCode] = useState("");
+  const [hasReferral, setHasReferral] = useState(false); // To track user choice
+  const [totalPrice, setTotalPrice] = useState(100000); // Example total price
+  const [isProceeding, setIsProceeding] = useState(false); // Track transaction state
+
   // console.log("from event page",pathname.split('/'))
   // Using `useQueries` to fetch both the specific event by `id` and all events
   const [eventQuery, allEventsQuery, reviewsQuery, ticketsQuery] = useQueries({
@@ -155,7 +162,7 @@ export default function EventPage() {
 
         const transactionData = {
           eventId: id,
-          totalPrice: event.price > 0 ? Math.round(totalPrice) : Math.round(1) 
+          totalPrice: totalPrice > 0 ? Math.round(totalPrice) : Math.round(1) 
         }
 
         // create the transaction and retrieve the transaction token and redirect URL
@@ -364,6 +371,58 @@ export default function EventPage() {
           <ReviewCarousel reviews={reviews}/>
         </div>
         
+        {/* Referral Modal - New Feature */}
+        {isReferralModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h2 className="text-lg font-bold mb-4 text-center">Do you have a referral code?</h2>
+              {!hasReferral ? (
+                <div className="flex flex-col space-y-4">
+                  <button
+                    className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                    onClick={() => setHasReferral(true)}
+                  >
+                    Yes, I have a referral code
+                  </button>
+                  <button
+                    className="bg-gray-300 text-gray-800 py-2 px-4 rounded hover:bg-gray-400"
+                    onClick={() => {
+                      setHasReferral(false)
+                      setIsReferralModalOpen(false)
+                    }}
+                  >
+                    No, proceed without referral code
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    placeholder="Enter referral code"
+                    className="border border-gray-300 w-full p-2 rounded mb-4"
+                  />
+                  <div className="flex justify-between">
+                    <button
+                      className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                      // onClick={validateReferralCode}
+                    >
+                      Apply Code
+                    </button>
+                    <button
+                      className="bg-gray-300 text-gray-800 py-2 px-4 rounded hover:bg-gray-400"
+                      onClick={() => setIsReferralModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Right side (Persistent Select Tickets Button) - 1/4 width */}
         <div className="w-1/4">
           {/* Sticky container for the button */}
