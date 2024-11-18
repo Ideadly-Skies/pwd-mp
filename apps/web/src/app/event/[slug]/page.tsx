@@ -28,13 +28,10 @@ export default function EventPage() {
   // define router, id, and useState for storing fetched event 
   const pathname = usePathname()
   const id = pathname.split('/')[2]
-  
-  // usestate variables for referral modal
+
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(true);
   const [referralCode, setReferralCode] = useState("");
   const [hasReferral, setHasReferral] = useState(false); // To track user choice
-  const [totalPrice, setTotalPrice] = useState(100000); // Example total price
-  const [isProceeding, setIsProceeding] = useState(false); // Track transaction state
 
   // console.log("from event page",pathname.split('/'))
   // Using `useQueries` to fetch both the specific event by `id` and all events
@@ -79,9 +76,12 @@ export default function EventPage() {
   console.log(event)
   let allEvents = allEventsQuery.data
   let reviews = reviewsQuery.data
-  let tickets = ticketsQuery.data
-  console.log("tickets", tickets)
-  
+  // let tickets = ticketsQuery.data
+  // console.log("tickets", tickets)
+    
+  const [tickets, setTickets] = useState<any[]>(ticketsQuery.data || []);  
+  const [discount, setDiscount] = useState(0); // Default no discount
+
   // Filter out the current event from all events
   const otherEvents = allEvents?.filter((e: any) => e.id !== Number(id));
   
@@ -145,6 +145,50 @@ export default function EventPage() {
   
       document.body.appendChild(script);
     });
+  };
+
+  const validateReferralCode = async () => {
+    if (!referralCode) {
+      toast.error("Please enter a referral code!");
+      return;
+    }
+  
+    try {
+      // Replace axios.post with your instance
+      const response = await instance.get("/referral/validate-referral", {
+        params: {
+          referralCode,
+          eventId: id    
+        }
+      });
+      
+      console.log("response", response)
+
+      if (response.data.success) {
+        const discount = response.data.data.discount;
+        setDiscount(discount)
+        
+        // Update ticket prices dynamically
+        const updatedTickets = tickets.map((ticket: any, index: number) => {
+          const originalPrice = ticket.price;
+          const discountedPrice = originalPrice - (originalPrice * discount) / 100;
+          return { ...ticket, price: discountedPrice };
+        });
+        
+        console.log("updated tickets", updatedTickets)
+
+        // Update the tickets state with the new discounted prices
+        setTickets(updatedTickets);
+
+        toast.success(`Referral code applied! ${discount}% discount`);
+        setIsReferralModalOpen(false);
+      } else {
+        toast.error("Invalid referral code");
+      }
+    } catch (error) {
+      console.error("Error validating referral code:", error);
+      toast.error("Failed to validate referral code. Please try again.");
+    }
   };
 
   // handleCheckout function
@@ -232,12 +276,23 @@ export default function EventPage() {
     } 
   }
 
-  // Update ticketCounts dynamically when tickets are loaded
   useEffect(() => {
-    if (tickets?.length && ticketCounts.length === 0) {
-      setTicketCounts(Array(tickets.length).fill(0)); // Initialize with zeros once tickets are available
+    if (ticketsQuery.data) {
+      const originalTickets = ticketsQuery.data;
+  
+      // Apply discount logic here if a discount exists
+      if (discount > 0) {
+        const updatedTickets = originalTickets.map((ticket: any) => {
+          const discountedPrice = ticket.price - (ticket.price * discount) / 100;
+          return { ...ticket, price: discountedPrice };
+        });
+        setTickets(updatedTickets);
+      } else {
+        // No discount, set original prices
+        setTickets(originalTickets);
+      }
     }
-  }, [tickets]);
+  }, [ticketsQuery.data, discount]); // Re-run when data or discount changes
 
   // if there are no event being fetched
   if (!event) {
@@ -301,56 +356,60 @@ export default function EventPage() {
           {/* Tickets Section */}
           <section ref={ticketsSectionRef} className="bg-white rounded-lg shadow-lg p-8 mt-8">
             <h2 className="text-2xl font-semibold text-gray-800">Tickets</h2>
-            {tickets?.length > 0 ? (
-              <div className="mt-4 space-y-4">
-                {tickets.map((ticket: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center border border-gray-300 rounded-lg p-4"
-                  >
-                    <div className="flex flex-col">
-                      <h3 className="text-gray-800 font-semibold">
-                        {ticket.name.replace("Seed", "").trim()} {/* Remove 'Seed' */}
-                      </h3>
-                      <p className="text-gray-600">IDR {ticket.price.toLocaleString('id-ID')}</p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <h3 className="text-gray-500">Available: {ticket.available}</h3>
-                    </div>
-                    {new Date() < new Date(ticket.startDate) ? (
-                      <div className="text-gray-500 font-medium">
-                        Sales start on{" "}
-                        {new Date(ticket.startDate).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </div>
-                    ) : ticket.available > 0 ? (
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => decrementTicket(index)}
-                          className="border border-gray-300 text-gray-500 p-1 rounded hover:border-[#f05537] hover:text-gray-500"
-                        >
-                          -
-                        </button>
-                        <span>{ticketCounts[index] || 0}</span>
-                        <button
-                          onClick={() => incrementTicket(index)}
-                          className="border border-gray-300 text-blue-500 p-1 rounded hover:border-[#f05537] hover:text-gray-500"
-                        >
-                          +
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-gray-500 font-medium">Sold Out!</div>
-                    )}
+            <div className="mt-4 space-y-4">
+              {tickets.map((ticket: any, index: number) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center border border-gray-300 rounded-lg p-4"
+                >
+                  <div className="flex flex-col">
+                    {/* Ticket Name */}
+                    <h3 className="text-gray-800 font-semibold">
+                      {ticket.name.replace("Seed", "").trim()} {/* Remove 'Seed' */}
+                    </h3>
+                    {/* Ticket Price */}
+                    <p className="text-gray-600">IDR {ticket.price.toLocaleString('id-ID')}</p> {/* Format price in IDR */}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-gray-500">No tickets available.</div>
-            )}
+                  <div className="flex flex-col items-center">
+                    {/* Ticket Availability */}
+                    <h3 className="text-gray-500">Available: {ticket.available}</h3>
+                  </div>
+                  {new Date() < new Date(ticket.startDate) ? (
+                    // Sales Start Message
+                    <div className="text-gray-500 font-medium">
+                      Sales start on{" "}
+                      {new Date(ticket.startDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </div>
+                  ) : ticket.available > 0 ? (
+                    <div className="flex items-center space-x-2">
+                      {/* Decrement Button */}
+                      <button
+                        onClick={() => decrementTicket(index)} // Adjust to target specific ticket
+                        className="border border-gray-300 text-gray-500 p-1 rounded hover:border-[#f05537] hover:text-gray-500"
+                      >
+                        -
+                      </button>
+                      {/* Ticket Count */}
+                      <span>{ticketCounts[index] || 0}</span> {/* Display specific ticket count */}
+                      {/* Increment Button */}
+                      <button
+                        onClick={() => incrementTicket(index)} // Adjust to target specific ticket
+                        className="border border-gray-300 text-blue-500 p-1 rounded hover:border-[#f05537] hover:text-gray-500"
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    // Sold Out Message
+                    <div className="text-gray-500 font-medium">Sold Out!</div>
+                  )}
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* Tags Section */}
@@ -370,8 +429,8 @@ export default function EventPage() {
           {/* Review Carousel Section */}
           <ReviewCarousel reviews={reviews}/>
         </div>
-        
-        {/* Referral Modal - New Feature */}
+
+        {/* Referral Modal */}
         {isReferralModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -406,7 +465,7 @@ export default function EventPage() {
                   <div className="flex justify-between">
                     <button
                       className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                      // onClick={validateReferralCode}
+                      onClick={validateReferralCode}
                     >
                       Apply Code
                     </button>
@@ -438,7 +497,7 @@ export default function EventPage() {
           </div>
         </div>
       </div>
-
+      
       <OtherEventsSection otherEvents={otherEvents}/>
     </div>
   );
