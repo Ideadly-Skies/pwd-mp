@@ -1,9 +1,9 @@
 'use client';
-import React from 'react';
-import { useState, Suspense } from 'react';
+
+import React, { useState, Suspense, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -15,27 +15,26 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import instance from '@/utils/axiosinstance';
 import Link from 'next/link';
-
-// interface Transaction {
-//   id: string;
-//   date: string;
-//   amount: number;
-//   status: 'completed' | 'pending' | 'failed';
-//   customerName: string;
-// }
 
 function TransactionListSkeleton() {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-            <TableHead>Username</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Event Name</TableHead>
+          <TableHead>Username</TableHead>
+          <TableHead>Amount</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>Event Name</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -65,28 +64,85 @@ function TransactionListSkeleton() {
 
 function TransactionList() {
   const [page, setPage] = useState(1);
-  // const [limit, setLimit] = useState(8);
+  const [limit] = useState(8);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'revenue' | 'status'>('revenue');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['transactionsList', page],
     queryFn: async () => {
       const response = await instance.get(`/transaction/transaction-lists`, {
         params: {
           page,
-          limit: 8
+          limit,
         },
       });
       return response.data.data;
     },
-    keepPreviousData: false
   });
-  // console.log('Received data:', data);
-  console.log('Fetched data for page:',data);
+
+  console.log('Fetched data for page:', data);
+
+  const filteredAndSortedTransactions = useMemo(() => {
+    if (!data?.transactions) return [];
+    
+    let filtered = data.transactions.filter((transaction: any) =>
+      transaction.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.event.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return filtered.sort((a: any, b: any) => {
+      if (sortBy === 'revenue') {
+        return sortOrder === 'desc' ? b.amount - a.amount : a.amount - b.amount;
+      } else {
+        const statusOrder = { paid: 0, pending: 1, failed: 2 };
+        return sortOrder === 'desc' 
+          ? statusOrder[b.status as keyof typeof statusOrder] - statusOrder[a.status as keyof typeof statusOrder]
+          : statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
+      }
+    });
+  }, [data, searchTerm, sortBy, sortOrder]);
 
   if (isLoading) return <TransactionListSkeleton />;
   if (error) return <p>Error loading transactions</p>;
 
+  const handleSort = (newSortBy: 'revenue') => {
+    if (newSortBy === sortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder('desc');
+    }
+  };
+
   return (
     <div>
+      <div className="mb-4 flex justify-between items-center">
+        <div className="relative flex-grow mr-4">
+          <Input
+            type="text"
+            placeholder="Search by username or event name"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              Sort by {sortBy === 'revenue' ? 'Revenue' : 'Status'} {sortOrder === 'desc' ? '▼' : '▲'}
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleSort('revenue')}>
+              Sort by Revenue {sortBy === 'revenue' && (sortOrder === 'desc' ? '▼' : '▲')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -98,12 +154,14 @@ function TransactionList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data && Array.isArray(data.transactions) && data.transactions.length > 0 ? (
-            data.transactions.map((transaction: any) => (
+          {filteredAndSortedTransactions.length > 0 ? (
+            filteredAndSortedTransactions.map((transaction: any) => (
               <TableRow key={transaction.username + transaction.date}>
-                <Link href={`/organizer/dashboard/transactions/${transaction.id}`} className='hover:text-blue-700 font-bold'>
-                <TableCell>{transaction.username}</TableCell> 
-                </Link>
+                <TableCell>
+                  <Link href={`/organizer/dashboard/transactions/${transaction.id}`} className='hover:text-blue-700 font-bold'>
+                    {transaction.username}
+                  </Link>
+                </TableCell>
                 <TableCell>
                   {transaction.amount !== undefined ? `IDR ${transaction.amount.toFixed(2)}` : 'N/A'}
                 </TableCell>
@@ -128,7 +186,7 @@ function TransactionList() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5}>No transactions available.</TableCell>
+              <TableCell colSpan={5} className="text-center">No transactions found matching your search criteria.</TableCell>
             </TableRow>
           )}
         </TableBody>
@@ -174,6 +232,3 @@ export default function TransactionsPage() {
     </div>
   );
 }
-
-
-  

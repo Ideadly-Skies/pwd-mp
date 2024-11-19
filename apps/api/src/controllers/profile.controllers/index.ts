@@ -6,26 +6,7 @@ export const createUserProfile = async(req: Request, res: Response, next: NextFu
     try {
         const uploadedImage = req?.files
 
-        let files
-
-        const {usersId, phoneNumber, address} = req.body
-
-        // if(req.files) {
-        //     files = Array.isArray(req.files)
-        //     ? req.files
-        //     : req.files['images']
-
-        //     console.log(req.files)
-
-        //     const imagesUploaded = []
-
-        //     for (const image of files!){
-        //         const result: any = await cloudinaryUpload(image.buffer)
-        //         console.log(result)
-        //         imagesUploaded.push(result.res!)
-        //     }
-        // }
-        
+        const {usersId, phoneNumber, address} = req.body        
         
         await createUserProfileService({uploadedImage, usersId, phoneNumber, address})
 

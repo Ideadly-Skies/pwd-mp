@@ -9,6 +9,7 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import instance from '@/utils/axiosinstance';
 import ReviewCarousel from '../review/page';
+import authStore from '@/zustand/authStore';
 
 // Function to format date
 function formatDate(dateString: string) {
@@ -28,6 +29,8 @@ export default function EventPage() {
   // define router, id, and useState for storing fetched event 
   const pathname = usePathname()
   const id = pathname.split('/')[2]
+  const isValid = authStore((state) => state.isValid)
+  console.log(isValid)
 
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(true);
   const [referralCode, setReferralCode] = useState("");
@@ -193,6 +196,10 @@ export default function EventPage() {
 
   // handleCheckout function
   const handleCheckout = async() => {
+    if (!isValid) {
+      toast.error("Please verify your account before making a transaction.");
+      return;
+    }
     if ((ticketCounts[0] || ticketCounts[1]) > 0) {    
       const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
       const regularTicketQty = ticketCounts[0]

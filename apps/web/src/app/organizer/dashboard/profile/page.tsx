@@ -204,9 +204,9 @@ export const OrganizerProfilePage = () => {
                   fd.append('companyName', values.companyName);
                   fd.append('pic', values.pic);
                   if (profileImage) {
-                    fd.append('images', profileImage);
+                    fd.append('mainImage', profileImage);
                   } else {
-                    fd.append('images', OrganizerProfileData?.profilePictureUrl);
+                    fd.append('mainImage', OrganizerProfileData?.profilePictureUrl);
                   }
                   mutateEditOrganizerProfile(fd);
                 }}

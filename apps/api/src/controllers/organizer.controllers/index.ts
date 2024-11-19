@@ -5,7 +5,9 @@ export const getEventForOrganizer = async(req: Request, res: Response, next: Nex
     try {
         const {usersId} = req.body
 
-        const events = await getEventForOrganizerService({usersId})
+        const {page = 1, limit = 8} = req.query
+
+        const events = await getEventForOrganizerService({usersId, page: Number(page), limit: Number(limit)})
 
         res.status(200).json({
             error: false,

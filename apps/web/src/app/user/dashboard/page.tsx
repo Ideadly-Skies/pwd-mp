@@ -78,19 +78,38 @@ export default function UserDashboard() {
    const router = useRouter();
    const currentDate = new Date();
  
+
    // access token from auth store
-   const token = authStore((state) => state.token); // Access token from authStore
-   const decodedToken = jwtDecode(token); // .data.id 
-   
-   const {data: events, isLoading, isError} = useQuery({
-     queryKey: [''],
-     queryFn: async () => {
-       const res = await instance.get(`/event/user/${decodedToken.data.id}`)
-       return res.data.data.events
+   const token = authStore((state) => state.token);
+  
+   // Safe token decoding
+   let decodedToken = null;
+   try {
+     if (token) {
+       decodedToken = jwtDecode(token);
      }
-   })
+   } catch (error) {
+     console.error('Token decoding error:', error);
+     // Optionally redirect to login or handle invalid token
+     router.push('/login');
+     return null;
+   }
+ 
+   // Only run the query if we have a valid decoded token
+   const {data: events, isLoading, isError} = useQuery({
+     // Disable the query if no valid token
+     enabled: !!decodedToken,
+     queryKey: ['userEvents', decodedToken?.data?.id],
+     queryFn: async () => {
+       if (!decodedToken?.data?.id) throw new Error('No user ID found');
+       const res = await instance.get(`/event/user/${decodedToken.data.id}`);
+       return res.data.data.events;
+     }
+   });
 
    if (isLoading) return <h1>Loading . . .</h1>
+
+   if(isError) return <h1>Something went wrong</h1>
  
    console.log("events invoked from review page",events)
  

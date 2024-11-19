@@ -85,14 +85,20 @@ const OrganizerLoginForm: FC = () => {
         </p>
 
         {/* Formik Form */}
-        <Formik
-          initialValues={{ emailOrUsername: '', password: '' }}
-          validationSchema = {LoginOrganizerSchema}
-          onSubmit={(values) => {
-
-            mutateLoginOrganizer({emailOrUsername: values.emailOrUsername, password: values.password})
-          }}
-        >
+           <Formik
+              initialValues={{ emailOrUsername: '', password: '' }}
+              validationSchema={LoginOrganizerSchema}
+              onSubmit={(values, { setSubmitting }) => {
+                mutateLoginOrganizer(
+                  { emailOrUsername: values.emailOrUsername, password: values.password }, 
+                  {
+                    onSettled: () => {
+                      setSubmitting(false)
+                    }
+                  }
+                )
+              }}
+            >
           {({ isSubmitting }) => (
             <Form className="space-y-4">
               <div>

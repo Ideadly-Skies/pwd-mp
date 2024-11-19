@@ -7,6 +7,7 @@ import {compile} from 'handlebars'
 import prisma from "@/prisma";
 import { transporter } from "@/utils/transporter";
 import { IUser } from "./types";
+import { isValid } from "date-fns";
 
 export const registerUser = async(req: Request, res: Response, next: NextFunction) => {
     try {
@@ -222,7 +223,7 @@ export const keepLogin = async(req: Request, res: Response, next: NextFunction) 
         const {usersId} = req.body 
         
         const user: any = await keepLoginService({id: usersId})
-        // console.log(user)
+        console.log(user)
         
         res.status(200).json({
             error: false, 
@@ -232,7 +233,9 @@ export const keepLogin = async(req: Request, res: Response, next: NextFunction) 
                 lastName: user.lastName,
                 role: user.role, 
                 email: user.email,
-                profilePictureUrl: user.profilePictureUrl
+                profilePictureUrl: user.profilePictureUrl,
+                isValid: user.isValid,
+                referralPoint: user.totalPoint
             }
         })
     } catch (error) {

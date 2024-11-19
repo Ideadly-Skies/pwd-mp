@@ -32,6 +32,7 @@ interface Transaction {
   };
   totalPrice: number;
   createdAt: string;
+  status: string;
 }
 
 interface EventDetails {
@@ -39,7 +40,7 @@ interface EventDetails {
     name: string;
     startDate: string;
     endDate: string;
-    imageUrl?: string;
+    url?: string;
   };
   totalRevenue: number;
   totalCapacity: number;
@@ -73,6 +74,7 @@ export default function EventDetails() {
   const soldSeats = eventDetails.totalCapacity - eventDetails.remainingSeats
   const soldPercentage = (soldSeats / eventDetails.totalCapacity) * 100
 
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">{eventDetails.event.name}</h1>
@@ -81,13 +83,13 @@ export default function EventDetails() {
         <CardContent className="p-6">
           <div className="relative aspect-video rounded-lg overflow-hidden">
             <Image
-              src={eventDetails.event.imageUrl || '/placeholder.svg'}
+              src={`http://localhost:4700/images/${eventDetails.event.url}` || '/placeholder.svg'}
               alt={eventDetails.event.name}
               layout="fill"
               objectFit="cover"
               priority
             />
-            {!eventDetails.event.imageUrl && (
+            {!eventDetails.event.url && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <ImageIcon className="w-16 h-16 text-white opacity-75" />
               </div>
@@ -163,16 +165,19 @@ export default function EventDetails() {
               <CardTitle>Recent Transactions</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {eventDetails.transactions.slice(0, 5).map((transaction) => (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {eventDetails.transactions
+                  .filter(transaction => transaction.status === 'paid')
+                  .slice(0, 5)
+                  .map((transaction) => (
                     <TableRow key={transaction.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center">
@@ -187,12 +192,16 @@ export default function EventDetails() {
                       <TableCell>{new Date(transaction.createdAt).toLocaleDateString()}</TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
-              </Table>
-              <Button variant="outline" className="w-full mt-4" onClick={() => setActiveTab('transactions')}>
-                View All Transactions
-              </Button>
-            </CardContent>
+              </TableBody>
+            </Table>
+            <Button 
+              variant="outline" 
+              className="w-full mt-4" 
+              onClick={() => setActiveTab('transactions')}
+            >
+              View All Transactions
+            </Button>
+          </CardContent>
           </Card>
         </TabsContent>
         
@@ -226,7 +235,7 @@ export default function EventDetails() {
                       <TableCell>IDR {transaction.totalPrice.toLocaleString()}</TableCell>
                       <TableCell>{new Date(transaction.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Badge variant="success">Completed</Badge>
+                        <Badge variant="success">{transaction.status}</Badge>
                       </TableCell>
                     </TableRow>
                   ))}

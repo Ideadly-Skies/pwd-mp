@@ -14,29 +14,7 @@ interface TransactionItem {
   quantity: number;
 }
 
-interface TransactionDetailsProps {
-  transactionNumber: string;
-  items: TransactionItem[];
-  totalAmount: number;
-  userName: string;
-  userAvatar: string;
-  status: 'pending' | 'completed' | 'failed';
-}
-
-'/transaction/transaction-detail/:id'
-
-export default function TransactionDetails({ 
-  transactionNumber = "TRX-12345", 
-  items = [
-    { id: 1, name: "Product A", price: 19.99, quantity: 2 },
-    { id: 2, name: "Product B", price: 29.99, quantity: 1 },
-    { id: 3, name: "Product C", price: 9.99, quantity: 3 },
-  ], 
-  totalAmount = 99.94,
-  userName = "John Doe",
-  userAvatar = "/placeholder.svg?height=40&width=40",
-  status = "completed"
-}: TransactionDetailsProps) {
+export default function TransactionDetails() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
@@ -76,7 +54,7 @@ export default function TransactionDetails({
             <div className="flex items-center space-x-4">
               <span className="font-semibold">{transactionDetail.user.name}</span>
               <Avatar className="h-10 w-10">
-                <AvatarImage src={transactionDetail.user.profilePictureUrl} alt={transactionDetail.user.name} />
+                <AvatarImage src={`http://localhost:4700/images/${transactionDetail.user.profilePictureUrl}`} alt={transactionDetail.user.name} />
                 <AvatarFallback>{transactionDetail.user.name.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
               </Avatar>
             </div>

@@ -6,7 +6,7 @@ import { dashboardPageData, getEventForOrganizer, getEventForOrganizerById } fro
 const router = Router()
 
 router.get('/events', verifyToken, verifyRole, getEventForOrganizer)
-router.get('/events/:id',verifyToken, getEventForOrganizerById)
-router.get('/dashboard',verifyToken, dashboardPageData)
+router.get('/events/:id',verifyToken, verifyRole, getEventForOrganizerById)
+router.get('/dashboard',verifyToken, verifyRole, dashboardPageData)
 
 export default router

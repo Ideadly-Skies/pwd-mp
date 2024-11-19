@@ -22,31 +22,31 @@ const LoginForm: FC = () => {
   const router = useRouter()
   const setAuth = authStore((state: any) => state.setAuth)
 
-      const{mutate: mutateLoginUser} = useMutation({
-        mutationFn: async({emailOrUsername, password}: any) => {
-          return await instance.post('/auth/login-user',{
-            emailOrUsername,
-            password
-          })
-        },
-        onSuccess: (res) => {
-          console.log(res.data.data)
-          setAuth({
-            token: res?.data?.data?.token, 
-            firstName: res?.data?.data?.firstName,
-            lastName: res?.data?.data?.lastName,
-            role: res?.data?.data?.role,
-            email: res?.data?.data?.email
-          })
-          console.log(setAuth.email)
-          toast.success(res.data.message)
-          router.push('/')
-        },
-        onError: (err) => {
-          console.log(err)
-          errorHandler(err)
-        }
+  const{mutate: mutateLoginUser} = useMutation({
+    mutationFn: async({emailOrUsername, password}: any) => {
+      return await instance.post('/auth/login-user',{
+        emailOrUsername,
+        password
       })
+    },
+    onSuccess: (res) => {
+      console.log(res.data.data)
+      setAuth({
+        token: res?.data?.data?.token, 
+        firstName: res?.data?.data?.firstName,
+        lastName: res?.data?.data?.lastName,
+        role: res?.data?.data?.role,
+        email: res?.data?.data?.email
+      })
+      console.log(setAuth.email)
+      toast.success(res.data.message)
+      router.push('/')
+    },
+    onError: (err, variables, context) => {
+      console.log(err)
+      errorHandler(err)
+    }
+  })
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-md rounded-md">
@@ -85,10 +85,15 @@ const LoginForm: FC = () => {
         <Formik
           initialValues={{ email: '', password: '' }}
           validationSchema={LoginUserSchema}
-          onSubmit={(values) => {
-            // Handle form submission
-            mutateLoginUser({ emailOrUsername: values.email, password: values.password})
-            console.log('Form submitted:', values);
+          onSubmit={(values, { setSubmitting }) => {
+            mutateLoginUser({ 
+              emailOrUsername: values.email, 
+              password: values.password 
+            }, {
+              onSettled: () => {
+                setSubmitting(false)
+              }
+            })
           }}
         >
           {({ isSubmitting }) => (

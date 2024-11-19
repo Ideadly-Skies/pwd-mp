@@ -4,40 +4,6 @@ import { prisma } from "../../connection";
 import { createTicketService } from "@/services/ticket.services";
 import { addDays, subDays } from "date-fns"; // Ensure date-fns is installed
 
-// [0]   The file is in the program because:
-// [0]     Matched by default include pattern '**/*'
-// [0] 
-// [0] 4:38:53 PM - Found 2 errors. Watching for file changes.
-// [1] ⚡️ [Server]: Server is running at http://localhost:4700
-// [1] [Object: null prototype] {
-// [1]   name: 'Computer Science Hackaton',
-// [1]   type: 'Conference',
-// [1]   category: 'Education',
-// [1]   eventPrice: '230000',
-// [1]   capacity: '500',
-// [1]   tags: [ 'hello', 'world', 'amazing', 'oop' ],
-// [1]   tagInput: '',
-// [1]   location: 'Sydney, New South Wales',
-// [1]   locationName: 'University of Sydney',
-// [1]   eventType: 'Single Event',
-// [1]   eventStartDate: '2024-11-17',
-// [1]   eventStartTime: '16:39',
-// [1]   eventEndDate: '2024-11-17',
-// [1]   eventEndTime: '20:39',
-// [1]   displayStartTime: 'false',
-// [1]   displayEndTime: 'false',
-// [1]   timeZone: 'GMT-0400',
-// [1]   eventPageLanguage: 'English',
-// [1]   locationType: 'Venue',
-// [1]   mainImageUrl: 'blob:http://localhost:3000/8867dcfa-4946-478c-b78f-ea5dfb5d703f',
-// [1]   summary: 'asdasd',
-// [1]   detailedDescription: '3r112r12r12r12r21r',
-// [1]   enableReferralDiscount: 'true',
-// [1]   referralCode: 'FEFE50',
-// [1]   discountPercentage: '20',
-// [1]   usersId: '4611af7e-0640-4f64-83fe-2aa2658de2ea',
-// [1]   authrorizationRole: 'organizer'
-// [1] 
 export const createEvent = async(req: Request, res: Response, next: NextFunction) => {
     try {
         let {

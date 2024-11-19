@@ -1,26 +1,44 @@
 import { prisma } from '@/connection';
 
-export const getEventForOrganizerService = async ({ usersId }: any) => {
-  return await prisma.event.findMany({
+export const getEventForOrganizerService = async ({ usersId, page, limit }: any) => {
+  const offset = (page - 1) * limit;
+ 
+  const events = await prisma.event.findMany({
     where: {
       eoId: usersId,
     },
     include: {
-      tickets: true,
-      transactions: true,
-      reviews: {
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profilePictureUrl: true,
-            },
-          },
-        },
-      },
+      tickets: true, 
+    },
+    skip: offset, 
+    take: limit,  
+  });
+
+
+  const eventsWithTotalCapacity = events.map((event) => {
+    const totalCapacity = event.tickets.reduce(
+      (acc, ticket) => acc + ticket.available,
+      0
+    );
+
+    return {
+      ...event,
+      totalCapacity, 
+    };
+  });
+
+  const totalCount = await prisma.event.count({
+    where: {
+      eoId: usersId,
     },
   });
+
+  return {
+    events: eventsWithTotalCapacity,
+    totalCount, 
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: page
+  };
 };
 
 export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
@@ -64,11 +82,9 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
     );
   }
 
-  // Calculate totals and ratings without additional reduce calls
-  const totalRevenue = event.transactions.reduce(
-    (acc, transaction) => acc + transaction.totalPrice,
-    0,
-  );
+  const totalRevenue = event.transactions
+  .filter(transaction => transaction.status === 'paid') 
+  .reduce((acc, transaction) => acc + transaction.totalPrice, 0);
 
   const totalCapacity = event.tickets.reduce(
     (acc, ticket) => acc + ticket.available,

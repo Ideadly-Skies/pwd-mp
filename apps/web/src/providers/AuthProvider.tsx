@@ -17,28 +17,26 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
     const [isAuthorized, setIsAuthorized] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
 
-
     const token = authStore((state) => state.token);
     const role = authStore((state) => state.role)
-    console.log('Role from AuthStore',role)
-    console.log('Token from AuthStore:',token)
     const setKeepAuth = authStore((state) => state.setKeepAuth);
 
     const fetchKeepAuth = async () => {
         try {
             const auth = await instance.get('/auth');
-            console.log('Fetched Data:', auth?.data?.data);
             setKeepAuth({
                 firstName: auth?.data?.data?.firstName,
                 lastName: auth?.data?.data?.lastName,
                 role: auth?.data?.data?.role,
                 email: auth?.data?.data?.email,
-                profilePictureUrl: auth?.data?.data?.profilePictureUrl
+                profilePictureUrl: auth?.data?.data?.profilePictureUrl,
+                isValid: auth?.data?.data?.isValid,
+                totalPoint: auth?.data?.data?.totalPoint
             });
         } catch (err) {
             console.log(err);
             toast.error('Please re-login, your session is expired');
-            router.push('/'); // Redirect to landing page if fetching auth fails
+            router.push('/'); 
         } finally {
             setIsKeepAuth(true);
         }
@@ -47,32 +45,39 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
     useEffect(() => {
         if (token) {
             fetchKeepAuth().finally(() => {
-                setIsLoading(false); // Set loading to false once the data is fetched
+                setIsLoading(false);
             });
         } else {
-            setIsLoading(false); // If no token, no need to fetch
+            setIsLoading(false);
         }
     }, [token]);
 
     useEffect(() => {
-        if (isLoading) return; // Wait for loading state to complete
+        if (isLoading) return;
         
+        // Guest access control
         if (!token) {
-            // Redirect guests (no token) attempting to access restricted routes
-            if (pathname.includes('/organizer/dashboard') || pathname === '/profile' || pathname.includes('/protected/path')) {
+            const guestBlockedRoutes = [
+                '/create-event',
+                '/organizer/dashboard', 
+                '/profile', 
+                '/user/inbox', 
+                '/user/dashboard'
+            ];
+
+            if (guestBlockedRoutes.some(route => pathname.includes(route))) {
                 toast.error('Access denied: You must be logged in');
                 setIsAuthorized(false);
-                setTimeout(() => router.push('/'), 3000);
+                setTimeout(() => router.push('/login/user'), 3000);
                 return;
             }
-            // Allow guests to access non-protected routes
             setIsAuthorized(true);
             return;
         }
     
-        // When token exists and keepAuth state is available
+        // Authenticated user access control
         if (isKeepAuth) {
-            if (typeof role === 'undefined') return; // Wait for role to be defined
+            if (typeof role === 'undefined') return;
     
             // Prevent access to login/register pages for authenticated users
             if (['/login/user', '/login/organizer', '/register/user', '/register/organizer'].includes(pathname) && role) {
@@ -80,30 +85,27 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
                 return;
             }
     
-            // Organizer-only access check
-            if (pathname.includes('/organizer/dashboard')) {
-                if (role !== 'organizer') {
-                    setIsAuthorized(false);
-                    toast.error('Access denied: Unauthorized user');
-                    setTimeout(() => router.push('/'), 3000);
-                    return;
-                }
-                setIsAuthorized(true);
+            // Organizer-only route protection
+            if (pathname.includes('/create-event') || pathname.includes('/organizer/dashboard') && role !== 'organizer') {
+                setIsAuthorized(false);
+                toast.error('Access denied: Only event organizers can create events');
+                setTimeout(() => router.push('/'), 3000);
                 return;
             }
-    
-            // User-only access to `/profile`
-            if (pathname === '/profile' && role !== 'user') {
+
+            // User-only route protection
+            const userOnlyRoutes = ['/profile', '/user/inbox', '/user/dashboard'];
+            if (userOnlyRoutes.includes(pathname) && role !== 'user') {
                 setIsAuthorized(false);
                 toast.error('Access denied: Only users can access this page');
                 setTimeout(() => router.push('/'), 3000);
                 return;
             }
     
-            // General access for other routes
             setIsAuthorized(true);
         }
     }, [isKeepAuth, pathname, token, role, isLoading]);
+
     if (isLoading) {
         return (
             <main className="flex justify-center">
@@ -112,9 +114,7 @@ export default function AuthProvider({ children }: IAuthProviderProps) {
         );
     }
 
-
     if (!isAuthorized) {
-        // Optionally render an error message while waiting for redirect
         return(
             <main className='w-full h-screen pt-72'>
                 <div className='text-center items-center justify-center'>
