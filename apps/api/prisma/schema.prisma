@@ -31,6 +31,7 @@ model User {
   reviews            Review[]
   resetPasswordToken String?            @db.Char(255)
   isValid            Boolean            @default(false)
+  createdAt  DateTime            @default(now())
 
   @@map("users")
 }
@@ -49,6 +50,7 @@ model EventOrganizer {
   pic               String
   events            Event[]
   profilePictureUrl String?
+  createdAt  DateTime            @default(now())
 
   @@map("eventorganizer")
 }
@@ -59,6 +61,7 @@ model ReferralPoint {
   expiry DateTime
   user   User     @relation(fields: [userId], references: [id])
   userId String
+  createdAt  DateTime            @default(now())
 
   @@map("refferalpoints")
 }
@@ -70,6 +73,7 @@ model ReferralDiscount {
   isUsed   Boolean  @default(false)
   user     User     @relation(fields: [userId], references: [id])
   userId   String
+  createdAt  DateTime            @default(now())
 
   @@map("refferaldiscounts")
 }
@@ -150,6 +154,7 @@ model Transaction {
   userId     String
   status     String              @default("pending")
   details    TransactionDetail[] // Add the opposite relation field here
+  createdAt  DateTime            @default(now())
 
   @@map("transactions")
 }
@@ -163,6 +168,7 @@ model TransactionDetail {
   vipTicketPrice     Int? // Price for VIP tickets
 
   transaction Transaction @relation(fields: [transactionId], references: [id]) // Relation with Transaction
+  createdAt  DateTime            @default(now())
 
   @@map("transactiondetails") // Map to the actual database table name
 }
@@ -175,6 +181,7 @@ model Review {
   comments String
   rating   Int
   feedback String
+  createdAt  DateTime            @default(now())
 
   @@id([userId, eventId], name: "userId_eventId")
   @@map("reviews")
