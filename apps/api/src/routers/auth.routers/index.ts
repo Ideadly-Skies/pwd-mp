@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { keepLogin, loginOrganizer, loginUser, registerOrganizer, registerUser, resetPassword, verifyResetPassword, requestVerifyAccount, verifyAccount } from "@/controllers/auth.controllers";
+import { keepLogin, loginOrganizer, loginUser, registerOrganizer, registerUser, resetPassword, verifyResetPassword, requestVerifyAccount, verifyAccount, changeOrganizerPassword, changeUserPassword } from "@/controllers/auth.controllers";
 import { loginOrganizerValidator, loginValidator, registerOrganizerValidator, registerUserValidator } from "@/middlewares/validator/auth.validator";
 import { errorHandling } from "@/middlewares/validator/error.handling";
 import { verifyRole } from "@/middlewares/verify.role";
@@ -16,7 +16,7 @@ router.post('/reset-password', verifyToken, verifyResetPassword)
 router.get('/', verifyToken, keepLogin)
 router.post('/request-verify-account', verifyToken, requestVerifyAccount)
 router.patch('/verify-account', verifyToken, verifyAccount)
-router.patch('/change-password-organizer')
-router.patch('/change-password-user')
+router.patch('/change-password-organizer',verifyToken, changeOrganizerPassword)
+router.patch('/change-password-user', verifyToken, changeUserPassword)
 
 export default router

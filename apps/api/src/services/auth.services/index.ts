@@ -1,6 +1,7 @@
 import { prisma } from "@/connection";
 import { IRegisterOrganizer, IRegisterUser } from "./types";
 import { hashPassword } from "@/utils/hash.password";
+import { comparePassword } from "@/utils/hash.password";
 import { createToken } from "@/utils/jwt";
 import fs from 'fs';
 import { transporter } from "@/utils/transporter";
@@ -211,17 +212,42 @@ export const verifyAccountService = async({id}: any) => {
 }
 
 export const changeUserPasswordService = async({usersId, oldPassword, password}: any) => {
-    return await prisma.user.findUnique({
+    
+    const user = await prisma.user.findUnique({
         where: {
             id: usersId
+        }
+    })
+
+    const isComparePassword = await comparePassword(oldPassword, user!.password);
+    if (!isComparePassword) throw { msg: 'False password, please try again', status: 406 };
+
+    await prisma.user.update({
+        where: {
+            id: usersId
+        },
+        data: {
+            password: await hashPassword(password)
         }
     })
 }
 
 export const changeOrganizerPasswordService = async({usersId, oldPassword, password}: any) => {
-    return await prisma.eventOrganizer.findUnique({
+    const organizer = await prisma.eventOrganizer.findUnique({
         where: {
             id: usersId
+        }
+    })
+
+    const isComparePassword = await comparePassword(oldPassword, organizer!.password);
+    if (!isComparePassword) throw { msg: 'False password, please try again', status: 406 };
+
+    await prisma.eventOrganizer.update({
+        where: {
+            id: usersId
+        },
+        data: {
+            password: await hashPassword(password)
         }
     })
 }

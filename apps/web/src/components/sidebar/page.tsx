@@ -10,11 +10,21 @@ import {
 } from 'lucide-react'; // Example icons from the 'lucide-react' library
 import authStore from '@/zustand/authStore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
+import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
 export const AdminSidebar = () => {
   const firstName = authStore((state) => state.firstName);
   const lastName = authStore((state) => state.lastName);
   const profilePictureUrl = authStore((state) => state.profilePictureUrl);
+  const handleLogOut = authStore((state) => state.setAuthLogout)
+  const router = useRouter()
+  
+  const handleSignOut = () => {
+    handleLogOut();
+    toast.success('Successfully logged out');
+      router.push('/');
+  };
+
   return (
     <main className="flex flex-col min-h-fit border-orange-500">
        <div className="border-e border-orange-500 h-full my-2" />
@@ -45,7 +55,7 @@ export const AdminSidebar = () => {
         <ul className="space-y-2 mt-4">
           <li className="hover:bg-orange-500">
             <Link
-              href="/dashboard"
+              href="/organizer/dashboard"
               className="flex items-center px-4 py-2 space-x-2"
             >
               <Home className="h-5 w-5" />
@@ -54,7 +64,7 @@ export const AdminSidebar = () => {
           </li>
           <li className="hover:bg-orange-500">
             <Link
-              href="/dashboard/profile"
+              href="/organizer/dashboard/profile"
               className="flex items-center px-4 py-2 space-x-2"
             >
               <CircleUser className="h-5 w-5" />
@@ -63,7 +73,7 @@ export const AdminSidebar = () => {
           </li>
           <li className="hover:bg-orange-500">
             <Link
-              href="/dashboard/events"
+              href="/organizer/dashboard/events"
               className="flex items-center px-4 py-2 space-x-2"
             >
               <PartyPopper className="h-5 w-5" />
@@ -72,7 +82,7 @@ export const AdminSidebar = () => {
           </li>
           <li className="hover:bg-orange-500">
             <Link
-              href="/dashboard/transactions"
+              href="/organizer/dashboard/transactions"
               className="flex items-center px-4 py-2 space-x-2"
             >
               <CreditCard className="h-5 w-5" />
@@ -83,7 +93,7 @@ export const AdminSidebar = () => {
       </nav>
 
       <div className="mt-auto flex-grow">
-        <button className="w-full flex items-center px-4 py-2 text-sm hover:bg-orange-500">
+        <button className="w-full flex items-center px-4 py-2 text-sm hover:bg-orange-500" onClick={handleSignOut}>
           <LogOut className="h-5 w-5 mr-2" />
           <span>Logout</span>
         </button>

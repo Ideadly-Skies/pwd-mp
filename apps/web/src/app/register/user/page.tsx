@@ -171,6 +171,12 @@ export default function RegisterUserPage() {
               <span className='text-sm text-gray-500 font-semibold'>Secure your 10% Discount by registering using Refferal code </span>
             </div>
 
+            <div>
+                <h1 className='mt-4 text-sm font-semibold text-gray-600 mb-4'>Want to be an Organizer? {'  '}
+                    <Link href='/register/organizer' className='text-orange-500 hover:underline'>Register yourself here</Link>
+                </h1>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"

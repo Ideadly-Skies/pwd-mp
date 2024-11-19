@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("PWD_MP_DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Tables
@@ -81,13 +82,10 @@ model Event {
   locationName        String
   location            String
   url                 String
-  description         String
-  detailedDescription String?       
+  description         String         @db.Text // Allows longer strings
+  detailedDescription String?        @db.Text // Allows very long strings
   startDate           DateTime
   endDate             DateTime
-  isPaid              Boolean
-  price               Float      
-  capacity            Int
   eo                  EventOrganizer @relation(fields: [eoId], references: [id])
   eoId                String
   tickets             EventTicket[]
@@ -97,7 +95,8 @@ model Event {
   categoryId          Int
   category            Category       @relation(fields: [categoryId], references: [id])
 
-  // New relationship with Tag
+  referralCode EventReferralCode? @relation("EventToReferral")
+
   tags Tag[] @relation("EventTags")
 
   @@map("events")
@@ -113,19 +112,14 @@ model Tag {
 }
 
 model EventTicket {
-  id                Int                 @id @default(autoincrement())
-  name              String
-  price             Int
-  available         Int
-  bookSeat          Int
-  discount          Int
-  discountStart     DateTime
-  discountExpiry    DateTime
-  startDate         DateTime
-  endDate           DateTime
-  event             Event               @relation(fields: [eventId], references: [id])
-  eventId           Int
-  TransactionDetail TransactionDetail[]
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Int
+  available Int
+  startDate DateTime
+  endDate   DateTime
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   Int
 
   @@map("eventtickets")
 }
@@ -148,39 +142,29 @@ model EventImage {
 }
 
 model Transaction {
-  id         String              @id 
+  id         String              @id
   event      Event               @relation(fields: [eventId], references: [id])
-  eventId    Int                  
+  eventId    Int
   totalPrice Int
   user       User                @relation(fields: [userId], references: [id])
   userId     String
-  createdAt  DateTime            @default(now())  // Add this line for createdAt
-  details    TransactionDetail[]
-  status     TransactionStatus[]
+  status     String              @default("pending")
+  details    TransactionDetail[] // Add the opposite relation field here
 
   @@map("transactions")
 }
 
 model TransactionDetail {
-  id            String      @id
-  transaction   Transaction @relation(fields: [transactionId], references: [id])
-  transactionId String 
-  ticket        EventTicket @relation(fields: [ticketId], references: [id])
-  ticketId      Int
-  price         Int
-  qty           Int
+  id                 String @id @default(uuid()) // Unique identifier
+  transactionId      String // Foreign key to Transaction
+  regularTicketQty   Int? // Quantity of regular tickets
+  regularTicketPrice Int? // Price for regular tickets
+  vipTicketQty       Int? // Quantity of VIP tickets
+  vipTicketPrice     Int? // Price for VIP tickets
 
-  @@map("transactiondetails")
-}
+  transaction Transaction @relation(fields: [transactionId], references: [id]) // Relation with Transaction
 
-model TransactionStatus {
-  id            String       @id 
-  status        String
-  transaction   Transaction @relation(fields: [transactionId], references: [id])
-  transactionId String
-  createdAt     DateTime    @default(now())
-
-  @@map("transactionstatus")
+  @@map("transactiondetails") // Map to the actual database table name
 }
 
 model Review {
@@ -192,6 +176,29 @@ model Review {
   rating   Int
   feedback String
 
-  @@id([userId, eventId])
+  @@id([userId, eventId], name: "userId_eventId")
   @@map("reviews")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  subject   String
+  content   String
+  sender    String
+  receiver  String
+  createdAt DateTime @default(now())
+
+  @@map("messages")
+}
+
+model EventReferralCode {
+  id                 Int      @id @default(autoincrement())
+  eventId            Int      @unique
+  referralCode       String
+  discountPercentage Int
+  createdAt          DateTime @default(now())
+
+  event Event @relation("EventToReferral", fields: [eventId], references: [id])
+
+  @@map("event_referral_code")
 }

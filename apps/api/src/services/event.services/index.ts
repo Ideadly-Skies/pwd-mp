@@ -1,7 +1,7 @@
 import { prisma } from "../../connection";
 // import { IUser } from "./types";
 
-export const createEventService = async({name, type, category, location, locationName, summary, detailedDescription, eventStartDate, eventEndDate, capacity, usersId, tags, url, isPaid}: any) => {
+export const createEventService = async({name, type, category, location, locationName, summary, detailedDescription, eventStartDate, eventEndDate,  usersId, tags, url}: any) => {
     const categoryRecord = await prisma.category.findMany({
         where: {
             name: category,
@@ -27,8 +27,6 @@ export const createEventService = async({name, type, category, location, locatio
             detailedDescription: detailedDescription,
             startDate: new Date(eventStartDate),
             endDate: new Date(eventEndDate),
-            isPaid: isPaid,
-            capacity: Number(capacity),
             categoryId: categoryRecord[0].id,
             eoId: usersId,
             tags: {
@@ -41,15 +39,31 @@ export const createEventService = async({name, type, category, location, locatio
     }) 
 }
 
+export const createEventReferralService = async({eventId, referralCode, discountPercentage, createdAt}: any) => {
+    // post to the event_referral_code backend
+    await prisma.eventReferralCode.create({
+        data: {
+            eventId: eventId,
+            referralCode: referralCode,
+            discountPercentage: discountPercentage,
+            createdAt: createdAt
+        }
+    })
+}
 
 export const getEventService = async() => {
-    // get event service
-    return await prisma.event.findMany({
-        include: {
-            tags: true,
-            category: true, // This includes the category information in the response
-        }, 
-    })
+    try {
+        // get event service
+        return await prisma.event.findMany({
+            include: {
+                tags: true,
+                category: true, // This includes the category information in the response
+            }, 
+        })
+    } catch (error) {
+        console.log(error)    
+    } 
+    
 }
 
 /* 

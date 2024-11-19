@@ -10,11 +10,11 @@ import { IUser } from "./types";
 
 export const registerUser = async(req: Request, res: Response, next: NextFunction) => {
     try {
-        console.log("called")
-        console.log(req.body);
+        // console.log("called")
+        // console.log(req.body);
 
         const { firstName, lastName, email, username, password, referralCode } = req.body
-        console.log(req.body)
+        // console.log(req.body)
 
         if(!firstName ||!lastName || !email || !username || !password) throw {msg: 'Input cannot be blank',status: 406}
 
@@ -195,7 +195,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         });
        
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         next(error)
     }
 }
@@ -236,7 +236,7 @@ export const keepLogin = async(req: Request, res: Response, next: NextFunction) 
             }
         })
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         next(error)
     }
 }
@@ -253,7 +253,7 @@ export const requestVerifyAccount = async(req: Request, res: Response, next: Nex
             data: {}
         })
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         next(error)
     }
 }
@@ -279,9 +279,13 @@ export const changeUserPassword = async (req: Request, res: Response, next: Next
     try {
         const {usersId, oldPassword, password} = req.body 
 
+
         await changeUserPasswordService({usersId, oldPassword, password})
 
-
+        res.status(200).json({
+            error: false,
+            message: 'Password successfully changed'
+        })
     } catch (error) {
         next(error)
     }
@@ -290,7 +294,7 @@ export const changeUserPassword = async (req: Request, res: Response, next: Next
 export const changeOrganizerPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {usersId, oldPassword, password} = req.body
-
+        
         await changeOrganizerPasswordService({usersId, oldPassword, password})
 
         

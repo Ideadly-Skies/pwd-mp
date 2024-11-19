@@ -19,6 +19,7 @@ import {
   Camera,
   ShieldCheck,
 } from 'lucide-react';
+import ReferralAndPointsView from '@/components/profile/user/ReferralAndPointsView';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import instance from '@/utils/axiosinstance';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -498,6 +499,14 @@ export default function ProfilePage() {
           </Formik>
         </CardContent>
       </Card>
+      <div className=' container mx-auto p-6'>
+        <Card className="max-w-3xl mx-auto">
+      <ReferralAndPointsView
+        referralCode={userProfileData?.referralCode || ''}
+        totalPoint={userProfileData?.totalPoint || 0}
+      />
+        </Card>
+      </div>
     </div>
   );
 }
