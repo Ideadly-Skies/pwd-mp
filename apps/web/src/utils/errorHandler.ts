@@ -18,7 +18,7 @@ export const errorHandler = (err: unknown) => {
 
   if (axiosErr.response) {
     // Accessing the message in the response
-    toast.error(axiosErr.response?.data?.message || 'An error occurred.');
+    toast.error('An error occurred.');
   } else {
     // Generic error message for non-Axios errors
     toast.error('An unknown error occurred.');

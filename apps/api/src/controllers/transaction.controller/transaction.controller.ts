@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { createTransactionDetailService, createTransactionService, updateTransactionStatusService } from "../../services/transaction.service";
+import { createTransactionDetailService, createTransactionService, getTransactionDetailService, getTransactionListService, updateTransactionStatusService } from "../../services/transaction.service";
 import { prisma } from "../../connection";
 import { updateTicketQtyService } from "@/services/ticket.services";
 const { v4: uuidv4 } = require('uuid');
@@ -266,4 +266,42 @@ export const createTransaction = async(req: Request, res: Response, next: NextFu
             next(error); 
         }
     }
+}
+
+export const getTransactionList = async(req: Request, res: Response, next: NextFunction) => {
+  try {
+      const {usersId} = req.body
+      const {page = 1, limit = 8} = req.query
+
+      const transactionList = await getTransactionListService({usersId, page: Number(page), limit: Number(limit)})
+
+      console.log(transactionList)
+      
+
+      res.status(200).json({
+          error: false,
+          message: 'Transaction retrieved',
+          data: transactionList
+      })
+   } catch (error) {
+      next(error)
+  }
+}
+
+export const getTransactionDetail = async(req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {id} = req.params
+
+    const {usersId} = req.body
+
+    const transactionDetails = await getTransactionDetailService({id, usersId})
+    
+    res.status(200).json({
+      error: false,
+      message: 'Transaction retrieved',
+      data: transactionDetails
+  })
+  } catch (error) {
+    next(error)
+  }
 }

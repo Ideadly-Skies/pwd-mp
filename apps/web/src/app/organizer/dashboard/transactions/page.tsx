@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import instance from '@/utils/axiosinstance';
+import Link from 'next/link';
 
 // interface Transaction {
 //   id: string;
@@ -100,18 +101,20 @@ function TransactionList() {
           {data && Array.isArray(data.transactions) && data.transactions.length > 0 ? (
             data.transactions.map((transaction: any) => (
               <TableRow key={transaction.username + transaction.date}>
-                <TableCell>{transaction.username}</TableCell>
+                <Link href={`/organizer/dashboard/transactions/${transaction.id}`} className='hover:text-blue-700 font-bold'>
+                <TableCell>{transaction.username}</TableCell> 
+                </Link>
                 <TableCell>
                   {transaction.amount !== undefined ? `IDR ${transaction.amount.toFixed(2)}` : 'N/A'}
                 </TableCell>
                 <TableCell>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      transaction.status === 'COMPLETED'
+                      transaction.status === 'paid'
                         ? 'bg-green-100 text-green-800'
-                        : transaction.status === 'PENDING'
+                        : transaction.status === 'pending'
                         ? 'bg-yellow-100 text-yellow-800'
-                        : transaction.status === 'CANCELLED'
+                        : transaction.status === 'failed'
                         ? 'bg-red-100 text-red-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}

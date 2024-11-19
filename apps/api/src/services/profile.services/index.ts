@@ -51,8 +51,8 @@ export const editUserProfileService = async ({ id, firstName, lastName, email, p
     };
 
     // If an image is uploaded, set `profilePictureUrl` in `updateData`.
-    if (uploadedImage?.images && uploadedImage.images[0]) {
-        updateData.profilePictureUrl = uploadedImage.images[0].filename;
+    if (uploadedImage?.mainImage && uploadedImage.mainImage[0]) {
+        updateData.profilePictureUrl = uploadedImage.mainImage[0].filename;
     }
 
     // Perform the user update with only the fields included in `updateData`.
@@ -64,7 +64,7 @@ export const editUserProfileService = async ({ id, firstName, lastName, email, p
     });
 
     // If an old profile picture exists and a new picture was uploaded, delete the old picture file.
-    if (oldImages?.profilePictureUrl && uploadedImage?.images && uploadedImage.images[0]) {
+    if (oldImages?.profilePictureUrl && uploadedImage?.mainImage && uploadedImage.mainImage[0]) {
         deleteFiles({
             imagesUploaded: {
                 images: [
@@ -110,8 +110,8 @@ export const editOrganizerProfileService = async({usersId, uploadedImage, firstN
         firstName, lastName, username, email, companyName, pic, address, phoneNumber
     }
 
-    if (uploadedImage?.images && uploadedImage.images[0]) {
-        updateData.profilePictureUrl = uploadedImage.images[0].filename;
+    if (uploadedImage?.mainImage && uploadedImage.mainImage[0]) {
+        updateData.profilePictureUrl = uploadedImage.mainImage[0].filename;
     }
 
     await prisma.eventOrganizer.update({
@@ -121,7 +121,7 @@ export const editOrganizerProfileService = async({usersId, uploadedImage, firstN
         data: updateData
     })
 
-    if (oldImages !== null && uploadedImage?.images && uploadedImage.images[0]) {
+    if (oldImages !== null && uploadedImage?.mainImage && uploadedImage.mainImage[0]) {
         deleteFiles({
             imagesUploaded: {
                 images: [

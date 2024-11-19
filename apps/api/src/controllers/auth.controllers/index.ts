@@ -297,7 +297,10 @@ export const changeOrganizerPassword = async (req: Request, res: Response, next:
         
         await changeOrganizerPasswordService({usersId, oldPassword, password})
 
-        
+        res.status(200).json({
+            error: false,
+            message: 'Password successfully changed'
+        })
     } catch (error) {
         next(error)
     }
