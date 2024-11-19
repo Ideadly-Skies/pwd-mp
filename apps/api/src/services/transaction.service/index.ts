@@ -118,3 +118,64 @@ export const getTransactionListService = async ({
       totalTransactions,
     };
   };
+
+  export const getTransactionDetailService = async ({ id, usersId }: { id: string; usersId: string }) => {
+    const transactionDetails = await prisma.transaction.findFirst({
+      where: {
+        id: id,
+        event: {
+          eoId: usersId, // Ensure the transaction is associated with the event organized by this EventOrganizer
+        },
+      },
+      include: {
+        details: true, // Include related transaction details
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            profilePictureUrl: true,
+          },
+        },
+      },
+    });
+  
+    if (!transactionDetails) {
+      throw new Error('Transaction not found or access denied.');
+    }
+  
+    // Format the data to match the expected output
+    const formattedTransaction = {
+      transactionNumber: transactionDetails.id,
+      user: {
+        name: `${transactionDetails.user.firstName} ${transactionDetails.user.lastName}`,
+        profilePictureUrl: transactionDetails.user.profilePictureUrl,
+      },
+      status: transactionDetails.status,
+      totalPrice: transactionDetails.totalPrice,
+      items: transactionDetails.details.flatMap((detail) => {
+        const items = [];
+        
+        // Add regular ticket if quantity exists
+        if (detail.regularTicketQty) {
+          items.push({
+            item: 'Regular Ticket',
+            amount: detail.regularTicketQty,
+            price: detail.regularTicketPrice,
+          });
+        }
+        
+        // Add VIP ticket if quantity exists
+        if (detail.vipTicketQty) {
+          items.push({
+            item: 'VIP Ticket',
+            amount: detail.vipTicketQty,
+            price: detail.vipTicketPrice,
+          });
+        }
+        
+        return items;
+      }),
+    };
+  
+    return formattedTransaction;
+  };

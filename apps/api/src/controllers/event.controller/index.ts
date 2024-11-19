@@ -240,3 +240,4 @@ export const getEventByUserId = async (req: Request, res: Response, next: NextFu
         }
     }
 };
+

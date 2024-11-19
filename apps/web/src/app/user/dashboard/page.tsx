@@ -1,6 +1,7 @@
 'use client';
-
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import {
   Card,
@@ -16,6 +17,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import authStore from '@/zustand/authStore';
+import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
+import instance from '@/utils/axiosinstance';
 
 interface Event {
   id: string;
@@ -66,20 +70,39 @@ const sampleEvents: Event[] = [
   },
 ];
 
-export default function UserDashboard({
-  userName = 'John Doe',
-  userAvatar = '/placeholder.svg?height=40&width=40',
-}) {
-  const [events] = useState<Event[]>(sampleEvents);
+export default function UserDashboard() {
   const firstName = authStore((state) => state.firstName);
   const lastName = authStore((state) => state.lastName);
   const profilePictureUrl = authStore((state) => state.profilePictureUrl);
-  const EventCard = ({ event }: { event: Event }) => (
+   // initialize hooks 
+   const router = useRouter();
+   const currentDate = new Date();
+ 
+   // access token from auth store
+   const token = authStore((state) => state.token); // Access token from authStore
+   const decodedToken = jwtDecode(token); // .data.id 
+   
+   const {data: events, isLoading, isError} = useQuery({
+     queryKey: [''],
+     queryFn: async () => {
+       const res = await instance.get(`/event/user/${decodedToken.data.id}`)
+       return res.data.data.events
+     }
+   })
+
+   if (isLoading) return <h1>Loading . . .</h1>
+ 
+   console.log("events invoked from review page",events)
+ 
+   const currentEvents = (events || []).filter((event: any) => new Date(events.endDate) >= currentDate);
+   const pastEvents = (events || []).filter((event: any) => new Date(events.endDate) < currentDate);
+ 
+   const EventCard = ({ event }) => (
     <Card className="mb-4">
       <CardContent className="p-4">
         <div className="flex items-start space-x-4">
           <img
-            src={event.imageUrl}
+            src={`http://localhost:4700/images/${event.url}`}
             alt={event.name}
             className="w-24 h-24 rounded-md object-cover"
           />
@@ -87,20 +110,15 @@ export default function UserDashboard({
             <h3 className="text-lg font-semibold">{event.name}</h3>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
               <Calendar className="h-4 w-4" />
-              <span>{event.date}</span>
+              <span>{new Date(event.startDate).toLocaleDateString()}</span>
               <Clock className="h-4 w-4 ml-2" />
-              <span>{event.time}</span>
+              <span>{new Date(event.startDate).toLocaleTimeString()}</span>
             </div>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
               <MapPin className="h-4 w-4" />
-              <span>{event.location}</span>
+              <span>{event.locationName}</span>
             </div>
           </div>
-          <Badge
-            variant={event.status === 'upcoming' ? 'default' : 'secondary'}
-          >
-            {event.status === 'upcoming' ? 'Upcoming' : 'Past'}
-          </Badge>
         </div>
       </CardContent>
     </Card>
@@ -143,18 +161,18 @@ export default function UserDashboard({
             </TabsList>
             <TabsContent value="upcoming">
               <ScrollArea className="h-[400px] pr-4">
-                {events
-                  .filter((event) => event.status === 'upcoming')
-                  .map((event) => (
+                {(events || [])
+                  .filter(event => new Date(event.endDate) >= new Date())
+                  .map(event => (
                     <EventCard key={event.id} event={event} />
                   ))}
               </ScrollArea>
             </TabsContent>
             <TabsContent value="past">
               <ScrollArea className="h-[400px] pr-4">
-                {events
-                  .filter((event) => event.status === 'past')
-                  .map((event) => (
+                {(events || [])
+                  .filter(event => new Date(event.endDate) < new Date())
+                  .map(event => (
                     <EventCard key={event.id} event={event} />
                   ))}
               </ScrollArea>

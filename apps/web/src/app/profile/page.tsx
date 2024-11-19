@@ -101,7 +101,7 @@ export default function Component() {
     },
   });
 
-  const { mutate: mutateChangePassword } = useMutation({
+  const { mutate: mutateChangeUserPassword } = useMutation({
     mutationFn: async (data: { oldPassword: string; password: string }) => {
       return await instance.patch('/auth/change-password-user', data);
     },
@@ -364,7 +364,7 @@ export default function Component() {
                 }}
                 validationSchema={PasswordChangeSchema}
                 onSubmit={(values, { resetForm }) => {
-                  mutateChangePassword({
+                  mutateChangeUserPassword({
                     oldPassword: values.oldPassword,
                     password: values.password,
                   });

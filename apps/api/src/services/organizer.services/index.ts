@@ -40,6 +40,7 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
               profilePictureUrl: true,
             },
           },
+          details: true
         },
       },
       tickets: true,
@@ -73,11 +74,16 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
     (acc, ticket) => acc + ticket.available,
     0,
   );
-  // const totalBookedSeats = event.tickets.reduce(
-  //   (acc, ticket) => acc + ticket.bookSeat,
-  //   0,
-  // );
-  // const remainingSeats = totalCapacity - totalBookedSeats;
+
+  const totalBookedSeats = event.transactions.reduce(
+    (acc, transaction) => acc + transaction.details.reduce(
+      (sum: any, detail: any) =>
+        sum + (detail.regularTicketQty || 0) + (detail.vipTicketQty || 0),
+      0
+    ),
+    0
+  );
+  const remainingSeats = totalCapacity - totalBookedSeats;
 
   const averageRating =
     event.reviews.length > 0
@@ -111,7 +117,7 @@ export const getEventForOrganizerByIdService = async ({ usersId, id }: any) => {
     event,
     totalRevenue,
     totalCapacity,
-    // remainingSeats,
+    remainingSeats,
     averageRating,
     reviews: reviewsWithReviewerInfo,
     transactions: transactionsWithUserInfo,
